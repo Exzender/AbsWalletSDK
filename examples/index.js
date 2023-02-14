@@ -1,9 +1,12 @@
 const AbwSDK = require('./../src');
 
-const testApiKey = 'test_api_key';
+const apiKey = '';
+const apiUrl = '';
 
 async function test() {
-    const abwSDK = AbwSDK({ apiKey: testApiKey, ignoreSsl: true });
+    // NOTE set ignoreSsl = true for local work with self-signed certs on API server
+    // NOTE set url to API server address
+    const abwSDK = AbwSDK({ apiKey: apiKey, url: apiUrl});
     try {
         await abwSDK.initBlockchain();
     } catch (e) {
@@ -21,7 +24,7 @@ async function test() {
             targetAddress: wallet.address,
             token: 'SOY',
             amount: 1
-            // TODO payload can have memo included
+            // NOTE payload can have memo included
         }
 
         const chain = 'clo';
