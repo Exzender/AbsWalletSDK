@@ -38,5 +38,5 @@ Q:
 +/- 21. Broadcast signed transaction (not tested - ) (API-call)
 
     KMS !
-1. Local storage to start with
-2. Encrypted local JSON file
++ 1. Local storage to start with
++ 2. Encrypted local JSON file

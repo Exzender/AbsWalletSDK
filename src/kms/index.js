@@ -25,11 +25,11 @@ function getWalletsFromFile (pass, filePath) {
     }
 
     const data = fs.readFileSync(walletPath, { encoding: 'utf8' });
-    if (!data?.length) {
+    if (!data) {
         throw new Error('No wallets found');
     }
 
-    return JSON.parse(AES.decrypt(data, password).toString(enc.Utf8));
+    return  JSON.parse(AES.decrypt(data, password).toString(enc.Utf8));
 }
 
 function writeWalletsToFile (wallets, pass, filePath) {
@@ -68,13 +68,27 @@ async function getWallet (id, pass, filePath) {
     }
 }
 
-function getWalletByMnemonic (wallets, chain)  {
+function getWalletByMnemonic (mnemonic, pass, chain, filePath)  {
+    let wallets;
+    try {
+        wallets = getWalletsFromFile(pass, filePath);
+    } catch (e) {
+        return [];
+    }
+
     return Object.keys(wallets)
-        .filter(id => wallets[id]?.chain === chain && !_.isNil(wallets[id].mnemonic))
-        .reduce((wallets, id) => ({ ...wallets, [id]: wallets[id] }), {});
+        .filter(id => {
+            let res = true;
+            if (chain) {
+                res = wallets[id].chain === chain;
+            }
+            res = res && (wallets[id].mnemonic === mnemonic);
+            return res;
+        })
+        .reduce((wals, id) => ({ ...wals, [id]: wallets[id] }), {});
 }
 
-function getWalletsByChain (pass, filePath, chain) {
+function getWalletsByChain (chain, pass, filePath) {
     let wallets;
     try {
         wallets = getWalletsFromFile(pass, filePath);
@@ -149,13 +163,13 @@ async function storeWallet (wallet, chain, pass, filePath) {
     } else {
         const data = getWalletsFromFile(pass, filePath);
         let walletsData = wallets;
-        if (data?.length > 0) {
+        if (data) {
             walletsData = { ...walletsData, ...data };
         }
         writeWalletsToFile(walletsData, pass, filePath);
     }
 
-    const value = { id: key };
+    const value = { id: key, chain: chain };
 
     if (wallet.address) {
         value.address = wallet.address;
@@ -164,7 +178,7 @@ async function storeWallet (wallet, chain, pass, filePath) {
         value.xpub = wallet.xpub;
     }
 
-    return { ...wallet, ...value };
+    return { ...value };
 }
 
 

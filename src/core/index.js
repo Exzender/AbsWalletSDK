@@ -109,5 +109,5 @@ module.exports = {
     sendTransaction,
     broadcastTransaction,
     buildTransaction,
-    signTransaction
+    signTransaction,
 }
