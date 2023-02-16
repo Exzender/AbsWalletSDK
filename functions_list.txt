@@ -46,3 +46,7 @@ Q:
 2. Binance (BNB) (not work serializing - some error in pararms)
 3. Bitcoin (btc, ltc, doge) - fully work
 4. EVM - fully work
+5. Polka (building works) - not able to serialize tx
+    https://github.com/paritytech/txwrapper-core/tree/main/packages/txwrapper-examples
+    https://wiki.polkadot.network/docs/build-transaction-construction
+6. Radix - fully work

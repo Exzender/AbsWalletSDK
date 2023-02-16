@@ -88,7 +88,7 @@ class RadixPlatform {
         const coin = txObj.coin;
 
         try {
-            return this.buildTx(srcObj.address, outObjs, coin.rri );
+            return this.buildTx(srcObj.address, outObjs, coin.contract );
         } catch (error) {
             throw new Error (`Radix Build TX error ${error.toString()}` );
         }
@@ -124,6 +124,9 @@ class RadixPlatform {
             headers: { 'Content-Type': 'application/json' },
             data : data
         };
+
+        console.log(config);
+
         const res = await axios(config);
         return res.data;
     }
@@ -162,7 +165,7 @@ class RadixPlatform {
 
         try {
             const res = await axios(config);
-            return res.data;
+            return res.data.signed_transaction;
         } catch (error) {
             throw new Error (`Radix Sign TX error ${error.toString()}` );
         }

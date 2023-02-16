@@ -67,10 +67,10 @@ class PolkaPlatform {
         try {
             const wei = Math.floor(aValue * coin.satoshi);
             let tx;
-            if (coin.tokenType) {
+            if (coin.type) {
                 tx = await web.tx.currencies.transfer(
                     destObj.address,
-                    { [coin.tokenType]: coin.tokenContract },
+                    { [coin.type]: coin.contract },
                     wei);
             } else {
                 tx = await web.tx.balances.transfer(destObj.address, wei);
