@@ -4,6 +4,7 @@ const { hdkey } = require('ethereumjs-wallet');
 const WalletJS = require('ethereumjs-wallet').default
 const ERC20Contract = require('erc20-contract-js');
 const Tx = require('ethereumjs-tx').Transaction;
+const Common = require('ethereumjs-common').default;
 
 const coinGas = 21000;
 const tokenGas = 100000; // 60000 for some tokens
@@ -153,21 +154,36 @@ class EtherPlatform {
     async signTransaction(node, transaction, key) {
         // const ether = this.rpcMap.get(node.name);
         const address = this.addressFromKey(key);
-        const txObject = {
+        let txObject = {
             nonce: Web3.utils.toHex(transaction.nonce),
             to: transaction.to,
             from: address,
-            chainId: transaction.chainId,
+            chainId: Web3.utils.toHex(transaction.chainId),
             value:    Web3.utils.toHex(transaction.value),
-            gasLimit: Web3.utils.toHex(transaction.gas),
-            data: transaction.data
+            gasPrice: Web3.utils.toHex(Web3.utils.toWei('20', 'Gwei')),
+            gasLimit: Web3.utils.toHex(transaction.gas)
         }
-        const tx = new Tx(txObject);
+        if (transaction.data) txObject.data = transaction.data;
+        console.log(txObject);
+
+        // const common = new Common('mainnet');
+
+        const customCommon = Common.forCustomChain(
+            'mainnet',
+            {
+                name: 'private-blockchain',
+                networkId: 123,
+                chainId: transaction.chainId
+            },
+            'istanbul',
+        );
+
+        const tx = new Tx(txObject, { common: customCommon });
         const keyBuff = Buffer.from(key, 'hex');
         try {
             tx.sign(keyBuff);
             // console.log(tx.toJSON());
-            return tx.serialize().toString('hex');
+            return '0x' + tx.serialize().toString('hex');
         } catch (error) {
             throw new Error (`${node.name} Sign TX error ${error.toString()}` );
         }
