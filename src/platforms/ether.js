@@ -152,7 +152,6 @@ class EtherPlatform {
     }
 
     async signTransaction(node, transaction, key) {
-        // const ether = this.rpcMap.get(node.name);
         const address = this.addressFromKey(key);
         let txObject = {
             nonce: Web3.utils.toHex(transaction.nonce),
@@ -164,9 +163,6 @@ class EtherPlatform {
             gasLimit: Web3.utils.toHex(transaction.gas)
         }
         if (transaction.data) txObject.data = transaction.data;
-        console.log(txObject);
-
-        // const common = new Common('mainnet');
 
         const customCommon = Common.forCustomChain(
             'mainnet',
@@ -182,7 +178,6 @@ class EtherPlatform {
         const keyBuff = Buffer.from(key, 'hex');
         try {
             tx.sign(keyBuff);
-            // console.log(tx.toJSON());
             return '0x' + tx.serialize().toString('hex');
         } catch (error) {
             throw new Error (`${node.name} Sign TX error ${error.toString()}` );
