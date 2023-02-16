@@ -56,7 +56,7 @@ class AptosPlatform {
             const payload = {
                 type: 'entry_function_payload',
                 function: '0x1::coin::transfer',
-                type_arguments: [coin.tokenContract],
+                type_arguments: [coin.contract],
                 arguments: [new aptos.HexString(destObj.address), wei]
             };
             return web.generateTransaction(accountHex, payload);

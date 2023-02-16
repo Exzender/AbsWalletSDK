@@ -116,7 +116,7 @@ class Bitcoin {
             const utxo = utxos[i];
             const utxoValue =  Number(utxo.value);
 
-            const txPrev = await this.apiClient.getTransaction(node.name, utxo.txid);
+            const txPrev = await this.apiClient.getRawTransaction(node.name, utxo.txid);
             if (!txPrev) continue;
 
             sumUtxo += utxoValue;
@@ -124,7 +124,8 @@ class Bitcoin {
             ins.push({txid: utxo.txid, vout: utxo.vout, value: utxoValue, nonWitnessUtxo : nonWitness});
         }
 
-        const feeRate = await this.apiClient.getFeeRate(node.name);
+        const feeRate = Math.floor((await this.apiClient.getFeeRate(node.name))/2);
+
         let resObj = coinSelect(ins, targets, feeRate);
 
         if (!resObj.inputs || !resObj.outputs) {
@@ -142,8 +143,13 @@ class Bitcoin {
             }
 
             targets[maxValueId].value = sumUtxo - sumValues + maxValue - resObj.fee;
+            if (targets[maxValueId].value < 0) {
+                targets[maxValueId].value = 0;
+            }
             resObj = coinSelect(ins, targets, feeRate);
         }
+
+        if (!resObj.outputs) return ;
 
         return resObj;
     }
@@ -167,9 +173,15 @@ class Bitcoin {
             if (!item.address) item.address = address;
             psbt.addOutput(item);
         });
+
         psbt.signAllInputs(keyPair);
 
-        if (!psbt.validateSignaturesOfAllInputs()) {
+        const self = this;
+        function validator (pubkey, msghash, signature) {
+            return self.ecpair.fromPublicKey(pubkey).verify(msghash, signature);
+        }
+
+        if (!psbt.validateSignaturesOfAllInputs(validator)) {
             return;
         }
 

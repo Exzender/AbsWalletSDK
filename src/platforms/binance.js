@@ -69,7 +69,7 @@ class Binance {
 
     async buildTransaction(node, txObj) {
         const srcObj = txObj.sourceItem;
-        const aDestItems = txObj.destItems;
+        const aDestItems = txObj.outputs;
 
         const msg = {
             inputs : [],
@@ -96,9 +96,13 @@ class Binance {
         const bnbClient = this.bnbClient;
         await bnbClient.setPrivateKey(key);
         const bnbAccount = bnbClient.recoverAccountFromPrivateKey(key);
+        bnbClient.setAccountNumber(bnbAccount.account_number || 0);
         const sequence = await this.apiClient.getTransactionCount('bnb', bnbAccount.address);
-        return bnbClient._prepareTransaction(transaction.msg, transaction.signMsg, transaction.fromAddress,
+        const tx = await bnbClient._prepareTransaction(transaction.msg, transaction.signMsg, transaction.fromAddress,
             sequence, transaction.memo);
+        // console.log(tx);
+        throw new Error('BNB offline sign unsupported yet');
+        // return tx.serialize();
     }
 }
 

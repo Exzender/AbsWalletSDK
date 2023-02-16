@@ -70,6 +70,14 @@ async function getTransaction(chain, hash) {
     });
 }
 
+async function getRawTransaction(chain, hash) {
+    return apiRequest.apiRequest({
+        method: 'GET',
+        path: `/v1/transaction/raw/${chain}/${hash}`,
+        mediaType: 'application/json'
+    });
+}
+
 async function getTransactionCount(chain, address) {
     return apiRequest.apiRequest({
         method: 'GET',
@@ -141,6 +149,7 @@ module.exports = {
     getLastBlock,
     getBlock,
     getTransaction,
+    getRawTransaction,
     getTransactionCount,
     getUtxosForAddress,
     getFeeRate,

@@ -276,12 +276,14 @@ class Blockchain  {
         const platform = this.platformMap.get(node.platform);
 
         const txPrepObj = this.prepareOneTx(node, payload);
+
         // TODO check target account or address (some chains requires accounts to be initialized)
         // call API-function
 
         // TODO check source balance (fee + amount)
 
         const txObj = platform.genTxObj([txPrepObj]);
+        // console.log(txObj);
 
         return platform.buildTransaction(node, txObj);
     }
