@@ -16,6 +16,12 @@ function getWalletsPath(filePath) {
     return filePath || path.resolve(__dirname, './.abwsdk/wallets.dat');
 }
 
+/**
+ * Reads local wallets file and decodes it using provided pass
+ * @param {string} [pass] password
+ * @param {string} [filePath] path to local wallets file
+ * @returns {Object} decoded wallets
+ */
 function getWalletsFromFile (pass, filePath) {
     const password = pass || PASS;
     const walletPath = getWalletsPath(filePath);
@@ -52,6 +58,13 @@ function isWalletsValid (id, wallets, chain) {
     return true;
 }
 
+/**
+ * Retrieves one wallet from local storage by wallet ID
+ * @param {string} id wallet ID
+ * @param {string} [pass] password
+ * @param {string} [filePath] path to local wallets file
+ * @returns {Object} decoded wallet
+ */
 async function getWallet (id, pass, filePath) {
     try {
         const data = getWalletsFromFile(pass, filePath);
@@ -68,6 +81,14 @@ async function getWallet (id, pass, filePath) {
     }
 }
 
+/**
+ * Retrieves wallets from local storage by mnemonic
+ * @param {string} mnemonic mnemonic phrase
+ * @param {string} [pass] password
+ * @param {string} [chain] chain - if needed to filter wallets by specific chain
+ * @param {string} [filePath] path to local wallets file
+ * @returns {array<Object>} array of decoded wallets
+ */
 function getWalletByMnemonic (mnemonic, pass, chain, filePath)  {
     let wallets;
     try {
@@ -88,6 +109,13 @@ function getWalletByMnemonic (mnemonic, pass, chain, filePath)  {
         .reduce((wals, id) => ({ ...wals, [id]: wallets[id] }), {});
 }
 
+/**
+ * Retrieves wallets from local storage by specific chain
+ * @param {string} chain filter wallets by specific chain
+ * @param {string} [pass] password
+ * @param {string} [filePath] path to local wallets file
+ * @returns {array<string>} array of wallet ID's
+ */
 function getWalletsByChain (chain, pass, filePath) {
     let wallets;
     try {
@@ -106,38 +134,59 @@ function getWalletsByChain (chain, pass, filePath) {
     return keys;
 }
 
+/**
+ * Retrieves private key of the wallet by ID
+ * @param {string} id wallet ID
+ * @param {string} [pass] password
+ * @param {string} [filePath] path to local wallets file
+ * @returns {string} private key
+ */
 function getPrivateKey (id, pass, filePath) {
     let wallets;
     try {
         wallets = getWalletsFromFile(pass, filePath);
     } catch (e) {
-        return null;
+        return undefined;
     }
 
     if (!wallets[id]) {
         console.error(`No such wallet for signatureId '${id}'.`);
-        return null;
+        return undefined;
     }
 
     return wallets[id].key;
 }
 
+/**
+ * Retrieves address of the wallet by ID
+ * @param {string} id wallet ID
+ * @param {string} [pass] password
+ * @param {string} [filePath] path to local wallets file
+ * @returns {string} address
+ */
 function getAddress (id, pass, filePath) {
     let wallets;
     try {
         wallets = getWalletsFromFile(pass, filePath);
     } catch (e) {
-        return null;
+        return undefined;
     }
 
     if (!wallets[id]) {
         console.error(`No such wallet for signatureId '${id}'.`);
-        return null;
+        return undefined;
     }
 
     return wallets[id].address;
 }
 
+/**
+ * Deletes wallet by ID from local storage
+ * @param {string} id wallet ID
+ * @param {string} [pass] password
+ * @param {string} [filePath] path to local wallets file
+ * @returns {undefined}
+ */
 function removeWallet (id, pass, filePath) {
     let wallets;
     try {
@@ -151,7 +200,15 @@ function removeWallet (id, pass, filePath) {
     writeWalletsToFile(wallets, pass, filePath);
 }
 
-async function storeWallet (wallet, chain, pass, filePath) {
+/**
+ * Stores AES encoded wallet to local storage
+ * @param {object} wallet wallet created with generateWallet
+ * @param {string} chain blockchain name
+ * @param {string} [pass] password
+ * @param {string} [filePath] path to local wallets file
+ * @returns {Object} wallet object with ID and without a key and mnemonic
+ */
+function storeWallet (wallet, chain, pass, filePath) {
     const walletPath = getWalletsPath(filePath);
 
     const key = uuid();
@@ -181,7 +238,12 @@ async function storeWallet (wallet, chain, pass, filePath) {
     return { ...value };
 }
 
-
+/**
+ * Reads and decodes all wallets from local file and returns them as Stringified JSON
+ * @param {string} [pass] password
+ * @param {string} [filePath] path to local wallets file
+ * @returns {string} stringified JSON
+ */
 function exportWallets (pass, filePath) {
     try {
         const wallets = getWalletsFromFile(pass, filePath);

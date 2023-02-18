@@ -36,6 +36,8 @@ Q:
 + 14. Get count of outgoing transactions (nonce) ? (API-call)
 +/- 16. Send Transaction (not tested) (API-call)
 +/- 21. Broadcast signed transaction (not tested - ) (API-call)
+22. Enable nodes and tokens caching
+23. Enable initializing only specific nodes
 
     KMS !
 + 1. Local storage to start with
@@ -43,7 +45,7 @@ Q:
 
     Test broadcasting
 1. APTOS (building works)
-2. Binance (BNB) (not work serializing - some error in pararms)
+2. Binance (BNB) (not work serializing - some error in params)
 3. Bitcoin (btc, ltc, doge) - fully work
 4. EVM - fully work
 5. Polka (building works) - not able to serialize tx

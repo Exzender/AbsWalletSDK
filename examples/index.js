@@ -24,29 +24,28 @@ async function test() {
 
     try {
         // test TX sending
-        const mnemonic = await abwSDK.generateMnemonic(12);
+        const mnemonic = abwSDK.generateMnemonic(12);
         console.log(mnemonic);
 
-        let wallet = await abwSDK.generateWallet(chain, mnemonic);
-        wallet.mnemonic = mnemonic;
+        let wallet = abwSDK.generateWallet(chain, mnemonic);
         // console.log('wallet: ', wallet);
 
         /**
          *  Store wallet in KMS
          */
-        // const res = await kms.storeWallet(wallet, chain, password);
+        // const res = kms.storeWallet(wallet, chain, password);
         // console.log(res);
-
-        // const oldWallet = await kms.getWallet(firstWalletId, password);
+        //
+        // const oldWallet = kms.getWallet(firstWalletId, password);
         // console.log('Get wallet: ', oldWallet);
         //
-        // const address = await kms.getAddress(firstWalletId, password);
+        // const address = kms.getAddress(firstWalletId, password);
         // console.log('Get address: ', address);
         //
-        // const key = await kms.getPrivateKey(firstWalletId, password);
+        // const key = kms.getPrivateKey(firstWalletId, password);
         // console.log('Get key: ', key);
 
-        const chainWallets = await kms.getWalletsByChain(chain, password);
+        const chainWallets = kms.getWalletsByChain(chain, password);
         console.log('chainWallets: ', chainWallets);
 
         // const mnemoWallets = await kms.getWalletByMnemonic(firstMnemonic, password, chain);
@@ -81,7 +80,7 @@ async function test() {
         /**
          *  Send TX with key
          */
-        // const res = await abwSDK.sendTransaction('clo', wallet.key, txPayload);
+        const res = await abwSDK.sendTransaction('clo', wallet.key, txPayload);
         // console.log(res);
 
         /**

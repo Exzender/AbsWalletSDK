@@ -211,7 +211,7 @@ class Blockchain  {
         return platform.convertAddress(address, chainId);
     }
 
-    async addressFromXpub(chain, xpub, index) {
+    addressFromXpub(chain, xpub, index) {
         const platformName = this.getPlatformName(chain);
         if (platformName !== 'ether') {
             throw new Error(`addressFromXpub not supported for ${chain}`);

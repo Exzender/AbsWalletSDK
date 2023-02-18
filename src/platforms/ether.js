@@ -73,7 +73,7 @@ class EtherPlatform {
         return  hdwallet.derivePath(ethHDpath).publicExtendedKey();
     }
 
-    async addressFromXpub(xpub, index = 0) {
+    addressFromXpub(xpub, index = 0) {
         let hdwallet = hdkey.fromExtendedKey(xpub);
         let wallet = hdwallet.deriveChild(index).getWallet();
         return "0x" + wallet.getAddress().toString("hex");
