@@ -65,7 +65,7 @@ function isWalletsValid (id, wallets, chain) {
  * @param {string} [filePath] path to local wallets file
  * @returns {Object} decoded wallet
  */
-async function getWallet (id, pass, filePath) {
+function getWallet (id, pass, filePath) {
     try {
         const data = getWalletsFromFile(pass, filePath);
 

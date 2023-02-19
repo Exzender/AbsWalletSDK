@@ -26,7 +26,7 @@ class Blockchain  {
         this.platformMap.set('tron', tron);
 
         /** Solana (SOL) **/
-        const sol = new SolanaPlatform();
+        const sol = new SolanaPlatform(apiClient);
         this.platformMap.set('solana', sol);
 
         /** Radix (XRD) **/
@@ -273,13 +273,20 @@ class Blockchain  {
         const node = this.nodesMap.get(chain);
         if (!node) throw new Error(`Unknown chain: ${chain}`);
 
-        if (!['ether','bitcoin','dogecoin','litecoin', 'radix'].includes(node.platform)) {
+        if (!['ether','bitcoin','dogecoin','litecoin', 'radix',  'solana'].includes(node.platform)) {
             throw new Error(`Local tx build fro ${chain} unsupported yet.`);
+        }
+
+        if (node.platform === 'solana') {
+            if (payload.token !== 'SOL') {
+                throw new Error(`Only SOL tokens supported for Solana chain.`);
+            }
         }
 
         const platform = this.platformMap.get(node.platform);
 
         const txPrepObj = this.prepareOneTx(node, payload);
+        // console.log(txPrepObj);
 
         // TODO check target account or address (some chains requires accounts to be initialized)
         // call API-function

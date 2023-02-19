@@ -2,8 +2,9 @@ const { Keypair, PublicKey, LAMPORTS_PER_SOL, Transaction, SystemProgram } = req
 const splToken = require('@solana/spl-token');
 
 class SolanaPlatform {
-    constructor() {
+    constructor(apiClient) {
         this.rpcMap = new Map();
+        this.apiClient = apiClient;
     }
 
     async setNodes(nodes) {
@@ -47,7 +48,7 @@ class SolanaPlatform {
         const tx = txObj.tx;
         const aValue = tx.value;
         const coin = tx.coin;
-        const isToken = coin['tokenType'] === 'SPL';
+        const isToken = coin['type'] === 'SPL';
 
         const publicKey = new PublicKey(srcObj.address);
         const toPublicKey = new PublicKey(destObj.address);
@@ -67,6 +68,9 @@ class SolanaPlatform {
                     lamports: aValue * LAMPORTS_PER_SOL
                 }));
             }
+        const { blockhash, lastValidBlockHeight } = await this.apiClient.getLastBlockHash(node.name);
+        signed.recentBlockhash = blockhash;
+        signed.lastValidBlockHeight = lastValidBlockHeight;
 
         return signed;
     }
@@ -75,7 +79,8 @@ class SolanaPlatform {
         const keyArray = new Uint8Array(Buffer.from(key, 'base64'));
         const payer = Keypair.fromSecretKey(keyArray);
         try {
-            return transaction.sign(payer);
+            transaction.sign(payer);
+            return transaction.serialize({ requireAllSignatures: false }).toString('hex');
         } catch (error) {
             throw new Error (`Solana Sign TX error ${error.toString()}` );
         }

@@ -54,6 +54,14 @@ async function getLastBlock(chain) {
     });
 }
 
+async function getLastBlockHash(chain) {
+    return apiRequest.apiRequest({
+        method: 'GET',
+        path: `/v1/block/lastBlockHash/${chain}`,
+        mediaType: 'application/json'
+    });
+}
+
 async function getBlock(chain, hash) {
     return apiRequest.apiRequest({
         method: 'GET',
@@ -147,6 +155,7 @@ module.exports = {
     getTokensOnWallet,
     getTokenInfo,
     getLastBlock,
+    getLastBlockHash,
     getBlock,
     getTransaction,
     getRawTransaction,

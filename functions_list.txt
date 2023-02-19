@@ -52,3 +52,6 @@ Q:
     https://github.com/paritytech/txwrapper-core/tree/main/packages/txwrapper-examples
     https://wiki.polkadot.network/docs/build-transaction-construction
 6. Radix - fully work
+7. Solana - fully work ( only for SOL )
+8. Terra
+9. Tron
