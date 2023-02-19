@@ -82,7 +82,7 @@ async function getTokenInfo(code) {
  * Get wallet/address balance from blockchain
  * @param {string} chain blockchain name
  * @param {string} address wallet address
- * @param {string} token token code or contract address
+ * @param {string} [token] token code or contract address
  * @returns {Promise<array<object>>} balance info includes token (name, contract) and value
  */
 async function getBalance(chain, address, token) {

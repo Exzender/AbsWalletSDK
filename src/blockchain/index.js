@@ -37,9 +37,9 @@ class Blockchain  {
         const terra = new TerraPlatform();
         this.platformMap.set('terra', terra);
 
-        /** PolkaDot **/
-        const polka = new PolkaPlatform();
-        this.platformMap.set('polka', polka);
+        // /** PolkaDot **/
+        // const polka = new PolkaPlatform();
+        // this.platformMap.set('polka', polka);
 
         /** Aptos **/
         const aptos = new AptosPlatform();
@@ -273,7 +273,7 @@ class Blockchain  {
         const node = this.nodesMap.get(chain);
         if (!node) throw new Error(`Unknown chain: ${chain}`);
 
-        if (!['ether','bitcoin','dogecoin','litecoin', 'radix',  'solana'].includes(node.platform)) {
+        if (!['ether','bitcoin','dogecoin','litecoin', 'radix',  'solana', 'terra', 'tron'].includes(node.platform)) {
             throw new Error(`Local tx build fro ${chain} unsupported yet.`);
         }
 

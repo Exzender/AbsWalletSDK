@@ -113,8 +113,11 @@ class TronPlatform {
 
     async signTransaction(node, transaction, key) {
         const web = this.rpcMap.get(node.name);
+        const fixKey = key.replace(/^0x/g,'')
         try {
-            return  web.trx.sign(transaction, key);
+            const signed =  (await web.trx.sign(transaction, fixKey));//.raw_data_hex;
+            // console.log(signed);
+            return JSON.stringify(signed);
         } catch (error) {
             throw new Error (`Tron Sign TX error ${error.toString()}` );
         }

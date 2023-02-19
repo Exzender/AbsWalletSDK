@@ -18,7 +18,7 @@ Q:
 +/- 17. Prepare transaction (only in SDK?) (or API ?)
 - 17.1. Serialize transaction
 + 18. Sign transaction (only in SDK?) (or API ?)
-20. Add descriptions to public functions (!)
++ 20. Add descriptions to public functions (!)
 21. Check balance function
 22. Function to create aptos account
 ! 4.1. Get XPUB different for each network !
@@ -53,5 +53,5 @@ Q:
     https://wiki.polkadot.network/docs/build-transaction-construction
 6. Radix - fully work
 7. Solana - fully work ( only for SOL )
-8. Terra
-9. Tron
+8. Terra - fully work
+9. Tron - fully work

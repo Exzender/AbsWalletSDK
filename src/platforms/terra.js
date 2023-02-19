@@ -1,5 +1,5 @@
 const { LCDClient, Coins, MnemonicKey, RawKey, MsgSend,
-    MsgExecuteContract } = require('@terra-money/terra.js');
+    MsgExecuteContract, Fee } = require('@terra-money/terra.js');
 const axios = require('axios');
 
 const rpcs = new Map ([
@@ -65,7 +65,7 @@ class TerraPlatform {
     async estimateAllGas(id) {
         const prfx = this.getUrlPrefix(id);
         const gasPrices = (await axios(`https://${prfx}-fcd.terra.dev/v1/txs/gas_prices`)).data;
-        return  new Coins(gasPrices);
+        return gasPrices.uluna;// new Coins(gasPrices);
     }
 
     getUrlPrefix(id) {
@@ -85,9 +85,10 @@ class TerraPlatform {
         const tx = txObj.tx;
         const aValue = tx.value;
         const coin = tx.coin;
-        const isToken = !coin.denom;
+        const isToken = !coin.contract;
 
         let gas = await this.estimateAllGas(lcd.config.chainID);
+
         let feeDenom = 'uluna';
         let msgSend;
 
@@ -101,7 +102,7 @@ class TerraPlatform {
                     }
                 });
         } else {
-            const denom = coin.denom;
+            const denom = coin.contract;
             feeDenom = denom;
             msgSend = new MsgSend(
                 srcObj.address,
@@ -112,11 +113,16 @@ class TerraPlatform {
 
         let options = {
             msgs: [msgSend],
-            gasPrices: gas,
+            gasPrices: { uluna: gas },
             gasAdjustment: 1.5,
             feeDenoms: feeDenom
         }
+        if (node.name === 'terra') options.fee = new Fee(150000,{ uluna: Math.floor((aValue * 0.01 * uluna)) });
         if (tx.memo) options.memo = tx.memo;
+
+        // console.log(options);
+        // const tx = await wallet.createTx(options);
+        // const fee = await lcd.tx.estimateGas(tx)
 
         return options;
     }
@@ -127,8 +133,15 @@ class TerraPlatform {
         const rawKey = new RawKey(srckey);
         const wallet = lcd.wallet(rawKey);
         try {
-            return  wallet.createAndSignTx(transaction);
+            // const tx = await wallet.createTx(transaction);
+            // console.log(tx);
+            const tx = await  wallet.createAndSignTx(transaction);
+            // console.log(JSON.stringify(tx, null, ' '));
+            // const encoded = lcd.tx.encode(tx);
+            // return Buffer.from(tx.toBytes().buffer).toString('hex');
+            return lcd.tx.encode(tx);
         } catch (error) {
+            console.log(error);
             throw new Error (`Terra Sign TX error ${error.toString()}` );
         }
     }
