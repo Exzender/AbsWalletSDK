@@ -63,24 +63,28 @@ async function test() {
         // const txPayload = {
         //     sourceAddress: wallet.address,
         //     targetAddress: wallet.address,
-        //     token: 'SOY',
+        //     token: 'APT',
         //     amount: 1
         //     // NOTE payload can have memo included
         // }
         //
-
         //
+        // // NOTE for Aptos chain need to check target account existence
+        // const isAccount = abwSDK.checkAndCreateAptosAccount(targetAddress, wallet.key);
+        // if (isAccount) {
         // const tx = await abwSDK.buildTransaction(chain, txPayload);
         // console.log(tx);
-        // const signed  = await abwSDK.signTransaction(chain, tx, wallet.key)
-        // console.log(signed);
-        // const res = await abwSDK.broadcastTransaction(chain, signed);
-        // console.log(res);
+        //     const signed = await abwSDK.signTransaction(chain, tx, wallet.key)
+        //     console.log('--signed:');
+        //     console.log(signed);
+        //     const res = await abwSDK.broadcastTransaction(chain, signed);
+        //     console.log(res);
+        // }
 
         /**
          *  Send TX with key
          */
-        const res = await abwSDK.sendTransaction('clo', wallet.key, txPayload);
+        // const res = await abwSDK.sendTransaction('clo', wallet.key, txPayload);
         // console.log(res);
 
         /**

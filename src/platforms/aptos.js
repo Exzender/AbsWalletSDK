@@ -1,12 +1,14 @@
 const aptos = require('aptos');
 const bip39 = require('bip39');
+const apiClient = require("../api-client");
 
 const derivePath = `m/44'/637'/0'/0'/0'`;
 const rpc = 'https://fullnode.mainnet.aptoslabs.com/v1';
 
 class AptosPlatform {
-    constructor() {
+    constructor(apiClient) {
         this.rpcMap = new Map();
+        this.apiClient = apiClient;
     }
 
     async setNodes(nodes) {
@@ -65,12 +67,47 @@ class AptosPlatform {
         }
     }
 
+    async checkAndCreateAptosAccount(address, key) {
+        const web = this.rpcMap.get('aptos');
+        let noAccount = true;
+        try {
+            await web.getAccount(address);
+            noAccount = false;
+        } catch (e) {
+            console.log('No aptos account - need to init');
+        }
+
+        if (noAccount) {
+            const hex = new aptos.HexString(key);
+            const account1 = new aptos.AptosAccount(hex.toUint8Array());
+            const payload = {
+                type: 'entry_function_payload',
+                function: '0x1::aptos_account::create_account',
+                type_arguments: [],
+                arguments: [address]
+            };
+
+            try {
+                const txnRequest = await web.generateTransaction(account1.address(), payload);
+                const signed = await this.signTransaction({name: 'aptos'}, txnRequest, key);
+                const transactionRes = await apiClient.broadcastTransaction('aptos', signed);
+                await web.waitForTransaction(transactionRes);
+            } catch (e) {
+                console.log(e.toString());
+                throw new Error('Error creating Target aptos account');
+            }
+        }
+
+        return true;
+    }
+
     async signTransaction(node, transaction, key) {
         const web = this.rpcMap.get(node.name);
         const hex = new aptos.HexString(key);
         const account1 = new aptos.AptosAccount(hex.toUint8Array());
         try {
-            return web.signTransaction(account1, transaction);
+            const signed = await web.signTransaction(account1, transaction);
+            return  Buffer.from(signed.buffer).toString('hex');
         } catch (error) {
             throw new Error (`Aptos Sign TX error ${error.toString()}` );
         }

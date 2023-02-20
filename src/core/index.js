@@ -195,6 +195,16 @@ async function buildTransaction(chain, payload) {
 }
 
 /**
+ * Checks if target Aptos account exists and creates it if not
+ * @param {string} address target address
+ * @param {string} key source wallet private key
+ * @returns {Promise<boolean>} result
+ */
+async function checkAndCreateAptosAccount(address, key) {
+    return blockchain.checkAndCreateAptosAccount(address, key);
+}
+
+/**
  * Sign transaction prepared in buildTransaction
  * Processed locally without sending KEY over the internet
  * @param {string} chain blockchain name
@@ -222,6 +232,7 @@ module.exports = {
     getTransaction,
     getTransactionCount,
     sendTransaction,
+    checkAndCreateAptosAccount,
     broadcastTransaction,
     buildTransaction,
     signTransaction,

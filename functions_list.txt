@@ -17,10 +17,11 @@ Q:
 - 17.1. Serialize transaction
 + 18. Sign transaction (only in SDK?) (or API ?)
 + 20. Add descriptions to public functions (!)
++ 22. Function to create aptos account
 21. Check balance function
-22. Function to create aptos account
 ! 4.1. Get XPUB different for each network !
 17.2. Implement Solana SPL transaction prepare
+23. Implement RPC-calls pass-through
 
     API calls
 + 1. Get Supported Networks: GET /info/networks (API-call)
@@ -42,7 +43,7 @@ Q:
 + 2. Encrypted local JSON file
 
     Test broadcasting
-1. APTOS (building works)
++ 1. APTOS - fully work
 + 2. Binance (BNB) - fully work
 + 3. Bitcoin (btc, ltc, doge) - fully work
 + 4. EVM - fully work

@@ -11,7 +11,7 @@ class Blockchain  {
         this.nodesMap = new Map();
         this.coinsMap = new Map();
         this.coinsContractsMap = new Map();
-        this.apiClient = apiClient;
+        // this.apiClient = apiClient;
 
         /** Binance (BNB, TWT) **/
         const binance = new Binance(apiClient);
@@ -42,7 +42,7 @@ class Blockchain  {
         this.platformMap.set('polka', polka);
 
         /** Aptos **/
-        const aptos = new AptosPlatform();
+        const aptos = new AptosPlatform(apiClient);
         this.platformMap.set('aptos', aptos);
 
         /** Bitcoin (BTC, LTC) **/
@@ -172,6 +172,11 @@ class Blockchain  {
         return platform.mnemonicToSeed(mnemonic);
     }
 
+    async checkAndCreateAptosAccount(address, key) {
+        const platform = this.platformMap.get('aptos');
+        return platform.checkAndCreateAptosAccount(address, key);
+    }
+
     async registerWallet(chain, mnemonic, index) {
         const node = this.nodesMap.get(chain);
         const platform = this.platformMap.get(node.platform);
@@ -273,10 +278,10 @@ class Blockchain  {
         const node = this.nodesMap.get(chain);
         if (!node) throw new Error(`Unknown chain: ${chain}`);
 
-        if (!['ether','bitcoin','dogecoin','litecoin', 'radix',  'solana', 'terra', 'tron', 'binance','polka']
-            .includes(node.platform)) {
-            throw new Error(`Local tx build for ${chain} unsupported yet.`);
-        }
+        // if (!['ether','bitcoin','dogecoin','litecoin', 'radix',  'solana', 'terra', 'tron', 'binance','polka']
+        //     .includes(node.platform)) {
+        //     throw new Error(`Local tx build for ${chain} unsupported yet.`);
+        // }
 
         if (node.platform === 'solana') {
             if (payload.token !== 'SOL') {
@@ -287,15 +292,7 @@ class Blockchain  {
         const platform = this.platformMap.get(node.platform);
 
         const txPrepObj = this.prepareOneTx(node, payload);
-        // console.log(txPrepObj);
-
-        // TODO check target account or address (some chains requires accounts to be initialized)
-        // call API-function
-
-        // TODO check source balance (fee + amount)
-
         const txObj = platform.genTxObj([txPrepObj]);
-        // console.log(txObj);
 
         return platform.buildTransaction(node, txObj);
     }
