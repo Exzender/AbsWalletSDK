@@ -273,8 +273,9 @@ class Blockchain  {
         const node = this.nodesMap.get(chain);
         if (!node) throw new Error(`Unknown chain: ${chain}`);
 
-        if (!['ether','bitcoin','dogecoin','litecoin', 'radix',  'solana', 'terra', 'tron'].includes(node.platform)) {
-            throw new Error(`Local tx build fro ${chain} unsupported yet.`);
+        if (!['ether','bitcoin','dogecoin','litecoin', 'radix',  'solana', 'terra', 'tron', 'binance']
+            .includes(node.platform)) {
+            throw new Error(`Local tx build for ${chain} unsupported yet.`);
         }
 
         if (node.platform === 'solana') {

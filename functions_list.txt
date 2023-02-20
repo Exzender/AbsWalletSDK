@@ -43,13 +43,13 @@ Q:
 
     Test broadcasting
 1. APTOS (building works)
-2. Binance (BNB) (not work serializing - some error in params)
-3. Bitcoin (btc, ltc, doge) - fully work
-4. EVM - fully work
++ 2. Binance (BNB) - fully work
++ 3. Bitcoin (btc, ltc, doge) - fully work
++ 4. EVM - fully work
 5. Polka (building works) - not able to serialize tx
     https://github.com/paritytech/txwrapper-core/tree/main/packages/txwrapper-examples
     https://wiki.polkadot.network/docs/build-transaction-construction
-6. Radix - fully work
-7. Solana - fully work ( only for SOL )
-8. Terra - fully work
-9. Tron - fully work
++ 6. Radix - fully work
++/- 7. Solana - fully work ( only for SOL )
++ 8. Terra - fully work
++ 9. Tron - fully work

@@ -1,6 +1,7 @@
 const { BncClient } = require('@binance-chain/javascript-sdk');
 const { AminoPrefix } = require('@binance-chain/javascript-sdk/lib/types');
 const { decodeAddress } = require('@binance-chain/javascript-sdk/lib/crypto');
+const { BigNumber } = require('bignumber.js');
 
 const rpcUrl = 'https://dex.binance.org';
 
@@ -47,11 +48,12 @@ class Binance {
         const destItems = [];
         for (let i = 0; i < txS.length; i++) {
             const txObj = txS[i];
-            const token = (txObj.tx.coin.name === 'BNB') ? 'BNB' : txObj.tx.coin.assetName;
+            const token = (txObj.tx.coin.code === 'BNB') ? 'BNB' : txObj.tx.coin.contract;
             dest.push({to: txObj.destItem.address,
                 coins: [{
                     denom: token,
-                    amount: txObj.tx.value
+                    // amount: txObj.tx.value
+                    amount: Math.round(new BigNumber(txObj.tx.value).multipliedBy(new BigNumber(10).pow(8)).toNumber()),
                 }]
             });
             destItems.push(txObj.destItem);
@@ -61,7 +63,7 @@ class Binance {
             sourceItem: txS[0].sourceItem,
             outputs: dest,
             destItems: destItems,
-            token: txS[txS.length-1].tx.coin.name,
+            token: txS[txS.length-1].tx.coin.code,
             coin: txS[txS.length-1].tx.coin,
             memo: txS[txS.length-1].tx.memo
         };
@@ -96,13 +98,10 @@ class Binance {
         const bnbClient = this.bnbClient;
         await bnbClient.setPrivateKey(key);
         const bnbAccount = bnbClient.recoverAccountFromPrivateKey(key);
-        bnbClient.setAccountNumber(bnbAccount.account_number || 0);
         const sequence = await this.apiClient.getTransactionCount('bnb', bnbAccount.address);
         const tx = await bnbClient._prepareTransaction(transaction.msg, transaction.signMsg, transaction.fromAddress,
             sequence, transaction.memo);
-        // console.log(tx);
-        throw new Error('BNB offline sign unsupported yet');
-        // return tx.serialize();
+        return tx.serialize();
     }
 }
 
