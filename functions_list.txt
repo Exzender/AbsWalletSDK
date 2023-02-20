@@ -2,9 +2,7 @@ Q:
 1. Implement CancelablePromise ?
 2. Support for test nets ?
 3. XPUB always generated for ETH net ?  But what about other chains ??
-5. Local wallet for Tron, BNB, Terra ?
 6. Propagate error from API to SDK (now they are replaced) - may use source mechanics - specify errors for every command
-7. Local prepare TX for Tron, BNB, Terra, Aptos, Polka (not possible) ?
 8. Teach SDK work without loaded coins (just by contract address) ?
 
     SDK functions
@@ -15,7 +13,7 @@ Q:
 + 5. Generate Wallet from mnemonic (online/offline)
 +/- 6. Generate Address from xpub (with index) (supported not for all networks!)
 + 12. Get address from pkey
-+/- 17. Prepare transaction (only in SDK?) (or API ?)
++ 17. Prepare transaction (only in SDK?) (or API ?)
 - 17.1. Serialize transaction
 + 18. Sign transaction (only in SDK?) (or API ?)
 + 20. Add descriptions to public functions (!)

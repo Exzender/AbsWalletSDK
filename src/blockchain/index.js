@@ -37,9 +37,9 @@ class Blockchain  {
         const terra = new TerraPlatform();
         this.platformMap.set('terra', terra);
 
-        // /** PolkaDot **/
-        // const polka = new PolkaPlatform();
-        // this.platformMap.set('polka', polka);
+        /** PolkaDot **/
+        const polka = new PolkaPlatform();
+        this.platformMap.set('polka', polka);
 
         /** Aptos **/
         const aptos = new AptosPlatform();
