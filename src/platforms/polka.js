@@ -91,7 +91,8 @@ class PolkaPlatform {
     async signTransaction(node, transaction, key) {
         const pair = this.getKeyPair(key);
         try {
-            return transaction.signAsync(pair);
+            const signed = await transaction.signAsync(pair);
+            return JSON.stringify(signed);
         } catch (error) {
             throw new Error (`${node.name} Sign TX error ${error.toString()}` );
         }
