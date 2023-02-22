@@ -4,12 +4,15 @@
 const { Binance, EtherPlatform, AptosPlatform, Bitcoin, PolkaPlatform,
     RadixPlatform, SolanaPlatform, TerraPlatform, TronPlatform } = require('./../platforms');
 const { coinFormat } = require('./utils');
+const path = require("path");
 
 class Blockchain  {
     constructor(apiClient, testNodes = false) {
         this.platformMap = new Map();
         this.nodesMap = new Map();
+        this.groupNodes = new Map();
         this.coinsMap = new Map();
+        this.platformInit = new Map();
         this.coinsContractsMap = new Map();
         // this.apiClient = apiClient;
 
@@ -88,7 +91,7 @@ class Blockchain  {
     async initNodes(nodes) {
         this.nodesMap.clear();
 
-        const groupNodes = new Map();
+        const groupNodes = this.groupNodes;
         for (let node of nodes) {
             const platform = node.platform;
 
@@ -110,16 +113,19 @@ class Blockchain  {
             this.nodesMap.set(nLocal.name, nLocal);
         }
 
-        const platforms = this.getPlatforms();
-        const promises = [];
-        for (let platformName of platforms) {
-            const platformObj = this.platformMap.get(platformName);
-            promises.push(platformObj.setNodes(groupNodes.get(platformName)));
-        }
-
-        await Promise.all(promises);
-
         return true;
+    }
+
+    async getPlatform(platformName) {
+        if (this.platformInit.has(platformName)) {
+            return this.platformMap.get(platformName);
+        } else {
+            console.log(`Init platform: `, platformName);
+            const platformObj = this.platformMap.get(platformName);
+            await platformObj.setNodes(this.groupNodes.get(platformName));
+            this.platformInit.set(platformName, true);
+            return platformObj;
+        }
     }
 
     getCoinByName(name) {
@@ -136,26 +142,26 @@ class Blockchain  {
         return pfm.filter((element) => { return element !== 'tbitcoin' });
     }
 
-    generateMnemonic(length = 24) {
+    async generateMnemonic(length = 24) {
         if (![12, 24].includes(length)) {
             throw new Error('Wrong mnemonic length (only 12 or 24 words)');
         }
-        const platform = this.platformMap.get('ether');
+        const platform = await this.getPlatform('ether');
         return platform.generateMnemonic(length);
     }
 
-    mnemonicToEntropy(mnemonic) {
-        const platform = this.platformMap.get('ether');
+    async mnemonicToEntropy(mnemonic) {
+        const platform = await this.getPlatform('ether');
         return platform.mnemonicToEntropy(mnemonic);
     }
 
-    validateMnemonic(mnemonic) {
-        const platform = this.platformMap.get('ether');
+    async validateMnemonic(mnemonic) {
+        const platform = await this.getPlatform('ether');
         return platform.validateMnemonic(mnemonic);
     }
 
-    entropyToMnemonic(entropy) {
-        const platform = this.platformMap.get('ether');
+    async entropyToMnemonic(entropy) {
+        const platform = await this.getPlatform('ether');
         return platform.entropyToMnemonic(entropy);
     }
 
@@ -168,18 +174,18 @@ class Blockchain  {
     }
 
     async mnemonicToSeed(mnemonic) {
-        const platform = this.platformMap.get('ether');
+        const platform = await this.getPlatform('ether');
         return platform.mnemonicToSeed(mnemonic);
     }
 
     async checkAndCreateAptosAccount(address, key) {
-        const platform = this.platformMap.get('aptos');
+        const platform = await this.getPlatform('aptos');
         return platform.checkAndCreateAptosAccount(address, key);
     }
 
     async registerWallet(chain, mnemonic, index) {
         const node = this.nodesMap.get(chain);
-        const platform = this.platformMap.get(node.platform);
+        const platform = await this.getPlatform(node.platform);
 
         let walletObj;
 
@@ -190,12 +196,12 @@ class Blockchain  {
             walletObj = await platform.registerWallet(mnemonic, index);
         }
 
-        walletObj.walletAddress = this.finalizeAddress(node, walletObj.walletAddress);
+        walletObj.walletAddress = await this.finalizeAddress(node, walletObj.walletAddress);
 
         return walletObj;
     }
 
-    finalizeAddress(node, address) {
+    async finalizeAddress(node, address) {
         if (node.platform.toLowerCase() === 'polka') {
             const chainId = node['chainPrefix'];
             return  this.convertPolkaAddress(address, chainId);
@@ -207,22 +213,22 @@ class Blockchain  {
     }
 
     async mnemonicToXpub(mnemonic) {
-        const platform = this.platformMap.get('ether');
+        const platform = await this.getPlatform('ether');
         return platform.mnemonicToXpub(mnemonic);
     }
 
-    convertPolkaAddress(address, chainId) {
-        const platform = this.platformMap.get('polka');
+    async convertPolkaAddress(address, chainId) {
+        const platform = await this.getPlatform('polka');
         return platform.convertAddress(address, chainId);
     }
 
-    addressFromXpub(chain, xpub, index) {
+    async addressFromXpub(chain, xpub, index) {
         const platformName = this.getPlatformName(chain);
         if (platformName !== 'ether') {
             throw new Error(`addressFromXpub not supported for ${chain}`);
         }
 
-        const platform = this.platformMap.get(platformName);
+        const platform = await this.getPlatform(platformName);
         const address = platform.addressFromXpub(xpub, index);
 
         const node = this.nodesMap.get(chain);
@@ -230,9 +236,9 @@ class Blockchain  {
         return this.finalizeAddress(node, address);
     }
 
-    addressFromKey(chain, key) {
+    async addressFromKey(chain, key) {
         const platformName = this.getPlatformName(chain);
-        const platform = this.platformMap.get(platformName);
+        const platform = await this.getPlatform(platformName);
         const address =  platform.addressFromKey(key);
         const node = this.nodesMap.get(chain);
 
@@ -278,18 +284,13 @@ class Blockchain  {
         const node = this.nodesMap.get(chain);
         if (!node) throw new Error(`Unknown chain: ${chain}`);
 
-        // if (!['ether','bitcoin','dogecoin','litecoin', 'radix',  'solana', 'terra', 'tron', 'binance','polka']
-        //     .includes(node.platform)) {
-        //     throw new Error(`Local tx build for ${chain} unsupported yet.`);
-        // }
-
         if (node.platform === 'solana') {
             if (payload.token !== 'SOL') {
                 throw new Error(`Only SOL tokens supported for Solana chain.`);
             }
         }
 
-        const platform = this.platformMap.get(node.platform);
+        const platform = await this.getPlatform(node.platform);
 
         const txPrepObj = this.prepareOneTx(node, payload);
         const txObj = platform.genTxObj([txPrepObj]);
@@ -297,15 +298,15 @@ class Blockchain  {
         return platform.buildTransaction(node, txObj);
     }
 
-    serializeTransaction(chain, transaction) {
+    async serializeTransaction(chain, transaction) {
         const node = this.nodesMap.get(chain);
-        const platform = this.platformMap.get(node.platform);
+        const platform = await this.getPlatform(node.platform);
         return platform.serializeTransaction(node, transaction);
     }
 
     async signTransaction(chain, transaction, key) {
         const node = this.nodesMap.get(chain);
-        const platform = this.platformMap.get(node.platform);
+        const platform = await this.getPlatform(node.platform);
         return platform.signTransaction(node, transaction, key);
     }
 }

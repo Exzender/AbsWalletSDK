@@ -2,18 +2,13 @@ const fs = require('fs');
 const path = require('path');
 const { AES, enc } = require('crypto-js');
 const { v4: uuid } = require('uuid');
+const { isPathExists } = require('./../utils');
+const homedir = require('os').homedir();
 
 const PASS = process.env.UNLOCK_PASS;
 
-function isPathExists (filePath) {
-    const dir = path.dirname(filePath);
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true })
-    }
-}
-
 function getWalletsPath(filePath) {
-    return filePath || path.resolve(__dirname, './.abwsdk/wallets.dat');
+    return filePath || `${homedir}/.abwsdk/wallets.dat`;
 }
 
 /**

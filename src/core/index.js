@@ -1,7 +1,39 @@
 const apiClient = require('./../api-client');
 const { Blockchain } = require('./../blockchain');
+const path = require('path');
+const fs = require('fs');
+const { isPathExists } = require('./../utils');
+
+const homedir = require('os').homedir();
+
+const LOCAL_NODES = 'networks.dat';
+const LOCAL_TOKENS = 'tokens.dat';
 
 let blockchain;
+
+function getStoragePath(fileName) {
+    return `${homedir}/.abwsdk/${fileName}`;
+}
+
+function getLocalData(fileName) {
+    const filePath = getStoragePath(fileName);
+    if (!fs.existsSync(filePath)) {
+        return;
+    }
+
+    const data = JSON.parse(fs.readFileSync(filePath, { encoding: 'utf8' }));
+    if (!data) {
+        return;
+    }
+
+    return data;
+}
+
+function storeLocalData(fileName, data) {
+    const filePath = getStoragePath(fileName);
+    isPathExists(filePath);
+    fs.writeFileSync(filePath, JSON.stringify(data));
+}
 
 /**
  * API client and blockchain module init - called on getting SDK object
@@ -14,15 +46,40 @@ function init (apiKey, url, ignoreSsl) {
 
 /**
  * Get blockchain nodes/tokens information from API and configures each supported blockchain for later use
+ * Nodes/tokens information then stored locally. To refresh information from API set forceRefresh to true
+ * @param {boolean} [forceRefresh=false] always get actual networks & tokens list from API
  * @returns {Promise<undefined>}
  */
-async function initBlockchain() {
+async function initBlockchain(forceRefresh = false) {
     try {
-        const networks = await apiClient.getNetworks();
-        await blockchain.initNodes(networks);
+        let networks, tokens;
+        let update = forceRefresh;
 
-        const tokens = await apiClient.getTokens();
+        if (forceRefresh) {
+            networks = await apiClient.getNetworks();
+            tokens = await apiClient.getTokens();
+        } else {
+            networks = getLocalData(LOCAL_NODES);
+            if (!networks) {
+                networks = await apiClient.getNetworks();
+                update = true;
+            }
+
+            tokens = getLocalData(LOCAL_TOKENS);
+            if (!tokens) {
+                tokens = await apiClient.getTokens();
+                update = true;
+            }
+        }
+
+        await blockchain.initNodes(networks);
         await blockchain.initCoins(tokens);
+
+        if (update) {
+            storeLocalData(LOCAL_NODES, networks);
+            storeLocalData(LOCAL_TOKENS, tokens);
+        }
+
     } catch (error) {
         throw new Error (`Init Blockchains error ${error.toString()}` );
     }
@@ -31,9 +88,9 @@ async function initBlockchain() {
 /**
  * Generates mnemonic. May accept mnemonic length (12 or 24 words).
  * @param {string} [length] (24 by default)
- * @returns {string} mnemonic phrase
+ * @returns {Promise<string>} mnemonic phrase
  */
-function generateMnemonic(length) {
+async function generateMnemonic(length) {
     return blockchain.generateMnemonic(length);
 }
 
@@ -45,7 +102,7 @@ function generateMnemonic(length) {
  * @returns {Promise<object>} wallet
  */
 async function generateWallet(chain, mnemonic = undefined, index = 0) {
-    const mnemo = mnemonic || blockchain.generateMnemonic();
+    const mnemo = mnemonic || (await blockchain.generateMnemonic());
     let wallet = await blockchain.registerWallet(chain, mnemo, index);
     const xpub = await blockchain.mnemonicToXpub(mnemonic);
     return {address: wallet.walletAddress, xpub, key: wallet.walletKey, mnemonic: mnemo};
@@ -104,9 +161,9 @@ async function getTokensOnWallet(chain, address) {
  * @param {string} chain blockchain name
  * @param {string} xpub XPUB key
  * @param {number} index address index
- * @returns {string} address
+ * @returns {Promise<string>} address
  */
-function addressFromXpub(chain, xpub, index) {
+async function addressFromXpub(chain, xpub, index) {
     return blockchain.addressFromXpub(chain, xpub, index);
 }
 
@@ -115,9 +172,9 @@ function addressFromXpub(chain, xpub, index) {
  * Processed locally without sending KEY over the internet
  * @param {string} chain blockchain name
  * @param {string} key private key
- * @returns {string} address
+ * @returns {Promise<string>} address
  */
-function addressFromKey(chain, key) {
+async function addressFromKey(chain, key) {
     return blockchain.addressFromKey(chain, key);
 }
 
