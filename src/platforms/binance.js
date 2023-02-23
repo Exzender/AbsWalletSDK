@@ -3,8 +3,6 @@ const { AminoPrefix } = require('@binance-chain/javascript-sdk/lib/types');
 const { decodeAddress } = require('@binance-chain/javascript-sdk/lib/crypto');
 const { BigNumber } = require('bignumber.js');
 
-const rpcUrl = 'https://dex.binance.org';
-
 class Binance {
     constructor(apiClient) {
         this.switchRpc = this.switchRpc.bind(this);
@@ -12,6 +10,7 @@ class Binance {
     }
 
     switchRpc() {
+        const rpcUrl = `${this.apiClient.getApiPath()}/bnb/${this.apiClient.getApiKey()}`;
         return new BncClient(rpcUrl);
     }
 

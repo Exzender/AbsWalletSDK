@@ -2,6 +2,7 @@ Q:
 1. Implement CancelablePromise ?
 2. Support for test nets ?
 3. XPUB always generated for ETH net ?  But what about other chains ??
+4. How to proxify WSS requests ?
 6. Propagate error from API to SDK (now they are replaced) - may use source mechanics - specify errors for every command
 8. Teach SDK work without loaded coins (just by contract address) ?
 
@@ -18,10 +19,10 @@ Q:
 + 18. Sign transaction (only in SDK?) (or API ?)
 + 20. Add descriptions to public functions (!)
 + 22. Function to create aptos account
++ 23. Implement RPC-calls pass-through
 21. Check balance function
 ! 4.1. Get XPUB different for each network !
 17.2. Implement Solana SPL transaction prepare
-23. Implement RPC-calls pass-through
 
     API calls
 + 1. Get Supported Networks: GET /info/networks (API-call)

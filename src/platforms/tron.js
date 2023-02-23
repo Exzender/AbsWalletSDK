@@ -2,11 +2,10 @@ const TronWeb = require('tronweb');
 
 const apiKey = process.env.TRON_API_KEY;
 
-const rpcUrl = 'https://api.trongrid.io';
-
 class TronPlatform {
-    constructor() {
+    constructor(apiClient) {
         this.rpcMap = new Map();
+        this.apiClient = apiClient;
         this.switchRpc = this.switchRpc.bind(this);
         this.addressFromKey = this.addressFromKey.bind(this);
     }
@@ -42,6 +41,7 @@ class TronPlatform {
 
     switchRpc() {
         const privateKey = '';
+        let rpcUrl = `${this.apiClient.getApiPath()}/${this.node.name}/${this.apiClient.getApiKey()}`;
         const web = new TronWeb({fullHost: rpcUrl,  privateKey: privateKey});
         web.setHeader({ 'TRON-PRO-API-KEY': apiKey });
         return web;

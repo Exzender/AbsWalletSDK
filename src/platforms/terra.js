@@ -3,15 +3,16 @@ const { LCDClient, Coins, MnemonicKey, RawKey, MsgSend,
 const axios = require('axios');
 
 const rpcs = new Map ([
-    ['terra', {RPC : 'https://columbus-lcd.terra.dev', chainID : 'columbus-5', isClassic: true}],
-    ['terra2', {RPC : 'https://lcd.terra.dev', chainID : 'phoenix-1', isClassic: false}]]);
+    ['terra', { chainID : 'columbus-5', isClassic: true}],
+    ['terra2', {chainID : 'phoenix-1', isClassic: false}]]);
 
 const uluna = 1000000;
 
 class TerraPlatform {
-    constructor() {
+    constructor(apiClient) {
         this.rpcMap = new Map();
         this.nodesMap = new Map();
+        this.apiClient = apiClient;
         this.switchRpc = this.switchRpc.bind(this);
         this.estimateAllGas = this.estimateAllGas.bind(this);
     }
@@ -31,7 +32,8 @@ class TerraPlatform {
 
     async switchRpc(node, index = 0) {
         const rpcObj = rpcs.get(node.name);
-        let rpc = rpcObj.RPC;
+        let rpc = rpcObj.RPC || `${this.apiClient.getApiPath()}/${node.name}/${this.apiClient.getApiKey()}`;
+        console.log(rpc);
         let id = rpcObj.chainID;
         let isClassic = rpcObj.isClassic;
 

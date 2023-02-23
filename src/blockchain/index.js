@@ -25,7 +25,7 @@ class Blockchain  {
         this.platformMap.set('ether', ether);
 
         /** Tron (TRX) **/
-        const tron = new TronPlatform();
+        const tron = new TronPlatform(apiClient);
         this.platformMap.set('tron', tron);
 
         /** Solana (SOL) **/
@@ -37,7 +37,7 @@ class Blockchain  {
         this.platformMap.set('radix', rdx);
 
         /** Terra (classic, 2.0) **/
-        const terra = new TerraPlatform();
+        const terra = new TerraPlatform(apiClient);
         this.platformMap.set('terra', terra);
 
         /** PolkaDot **/

@@ -1,6 +1,5 @@
 const apiClient = require('./../api-client');
 const { Blockchain } = require('./../blockchain');
-const path = require('path');
 const fs = require('fs');
 const { isPathExists } = require('./../utils');
 
@@ -273,6 +272,19 @@ async function signTransaction(chain, transaction, key) {
     return blockchain.signTransaction(chain, transaction, key);
 }
 
+/**
+ * Direct RPC call
+ * Interact with the blockchain directly by connecting to the blockchain node and communicating with it through JSON-RPC
+ * @param {string} chain blockchain name
+ * @param {string} [method='POST'] method (POST, PUT, GET)
+ * @param {object} [body] request params
+ * @param {string} [rpcPath] optional path of rpc call
+ * @returns {Promise<object>} result of RPC call
+ */
+async function directRpcCall(chain, method, body, rpcPath) {
+    return apiClient.directRpcCall(chain, method, body, rpcPath);
+}
+
 module.exports = {
     init,
     generateMnemonic,
@@ -293,4 +305,5 @@ module.exports = {
     broadcastTransaction,
     buildTransaction,
     signTransaction,
+    directRpcCall
 }

@@ -1,6 +1,6 @@
 {
   "name": "absolute.wallet.sdk",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Multi chain Blockchain SDK by AbsoluteWallet",
   "main": "src/index.js",
   "scripts": {

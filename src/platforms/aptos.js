@@ -3,7 +3,6 @@ const bip39 = require('bip39');
 const apiClient = require("../api-client");
 
 const derivePath = `m/44'/637'/0'/0'/0'`;
-const rpc = 'https://fullnode.mainnet.aptoslabs.com/v1';
 
 class AptosPlatform {
     constructor(apiClient) {
@@ -14,8 +13,10 @@ class AptosPlatform {
     async setNodes(nodes) {
         if (nodes) {
             this.node = nodes[0];
+            const rpc = `${this.apiClient.getApiPath()}/${this.node.name}/${this.apiClient.getApiKey()}`;
+            console.log(rpc);
             const key = this.node.name;
-            const web = await new aptos.AptosClient(rpc);
+            const web = await new aptos.AptosClient(rpc, undefined, true);
             this.rpcMap.set(key, web);
         } else {
             this.node = null;
@@ -74,8 +75,11 @@ class AptosPlatform {
             await web.getAccount(address);
             noAccount = false;
         } catch (e) {
+            console.log(e);
             console.log('No aptos account - need to init');
         }
+
+        return ;
 
         if (noAccount) {
             const hex = new aptos.HexString(key);

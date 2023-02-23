@@ -1,6 +1,11 @@
 const apiRequest = require('./request');
 
+let localApiKey;
+let localApiUrl;
+
 function initApi(apiKey, url, ignoreSsl) {
+    localApiKey = apiKey;
+    localApiUrl = `${url}/v1/node`;
     apiRequest.initApi(apiKey, url, ignoreSsl);
 }
 
@@ -147,6 +152,29 @@ async function broadcastTransaction(chain, signedTx) {
     });
 }
 
+function getApiPath() {
+    return localApiUrl;
+}
+
+function getApiKey() {
+    return localApiKey;
+}
+
+async function directRpcCall(chain, method = 'POST', body = {}, rpcPath = '') {
+    const addPath = rpcPath ? `/${rpcPath}` : '';
+    let options = {
+        method: method.toUpperCase(),
+        path: `/v1/node/${chain}/${localApiKey}${addPath}`,
+        mediaType: 'application/json'
+    };
+
+    if (body) {
+        options.body = { ...body }
+    }
+
+    return apiRequest.apiRequest(options);
+}
+
 module.exports = {
     initApi,
     getNetworks,
@@ -164,5 +192,8 @@ module.exports = {
     getFeeRate,
     estimateGasFee,
     sendTransaction,
+    directRpcCall,
+    getApiPath,
+    getApiKey,
     broadcastTransaction
 }
