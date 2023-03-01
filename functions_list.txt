@@ -21,7 +21,8 @@ Q:
 + 20. Add descriptions to public functions (!)
 + 22. Function to create aptos account
 + 23. Implement RPC-calls pass-through
-21. Check balance function
++ 21. Check balance function
+
 ! 4.1. Get XPUB different for each network !
 17.2. Implement Solana SPL transaction prepare
 22. Implement Rain, Multi-send
