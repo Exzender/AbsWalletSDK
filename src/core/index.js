@@ -274,12 +274,19 @@ async function signTransaction(chain, transaction, key) {
 }
 
 /**
+ * @typedef CheckBalanceResult
+ * @property {boolean} result - True if balance is enough
+ * @property {string} feeCoin - Name of base coin for provided chain
+ * @property {string} message - Text result with name of Token (if it's not enough)
+ */
+
+/**
  * Check available balance (including fee) prior sending
  * @param {string} chain blockchain name
  * @param {string} address source wallet address
  * @param {string} token token code or contract address
  * @param {number} value sending value
- * @returns {Promise<string>} signed and serialized transaction
+ * @returns {Promise<CheckBalanceResult>}
  */
 async function checkBalanceAndFee(chain, address, token, value) {
     return blockchain.checkBalanceAndFee(chain, address, token, value);
