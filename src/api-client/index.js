@@ -119,6 +119,18 @@ async function estimateGasFee(chain, payload) {
     });
 }
 
+async function estimateTxFee(chain, token) {
+    return apiRequest.apiRequest({
+        method: 'POST',
+        path: `/v1/transaction/estimatetxfee`,
+        mediaType: 'application/json',
+        body: {
+            chain,
+            token
+        }
+    });
+}
+
 async function getUtxosForAddress(chain, address) {
     return apiRequest.apiRequest({
         method: 'GET',
@@ -195,5 +207,6 @@ module.exports = {
     directRpcCall,
     getApiPath,
     getApiKey,
+    estimateTxFee,
     broadcastTransaction
 }

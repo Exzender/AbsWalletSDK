@@ -4,7 +4,6 @@
 const { Binance, EtherPlatform, AptosPlatform, Bitcoin, PolkaPlatform,
     RadixPlatform, SolanaPlatform, TerraPlatform, TronPlatform } = require('./../platforms');
 const { coinFormat } = require('./utils');
-const path = require("path");
 
 class Blockchain  {
     constructor(apiClient, testNodes = false) {
@@ -14,6 +13,7 @@ class Blockchain  {
         this.coinsMap = new Map();
         this.platformInit = new Map();
         this.coinsContractsMap = new Map();
+        this.apiClient = apiClient;
         // this.apiClient = apiClient;
 
         /** Binance (BNB, TWT) **/
@@ -308,6 +308,60 @@ class Blockchain  {
         const node = this.nodesMap.get(chain);
         const platform = await this.getPlatform(node.platform);
         return platform.signTransaction(node, transaction, key);
+    }
+
+    async checkBalanceAndFee(chain, address, token, value) {
+        const node = this.nodesMap.get(chain);
+
+        let coin = this.getCoinByName(token);
+        if (!coin) {
+            coin = this.getCoinByContract(token);
+        }
+
+        if (!coin) return ;
+
+        const feeBalance = await this.getFeeBalance(node, coin, address);
+
+        const resBalance = await this.apiClient.getBalance(chain, address, token);
+        const balance = resBalance.balance[0].value;
+
+        // get estimated fee size
+        const fee = await this.apiClient.estimateTxFee(chain, feeBalance.feeCoin);
+
+        let result;
+        let message = 'OK';
+        // sum all up and prepare resulting object
+        if (feeBalance.feeCoin === token.toUpperCase()) {
+            const sum = value + fee;
+            result = balance > sum;
+            if (!result) {
+                message = `Not enough ${token} on source wallet`;
+            }
+        } else {
+            const isBal = (balance > value);
+            const isFee = (feeBalance > fee);
+            if (!isBal) {
+                message = `Not enough ${token} on source wallet`;
+            } else {
+                if (!isFee) {
+                    message = `Not enough ${feeBalance.feeCoin} on source wallet`;
+                }
+            }
+            result = isBal && isFee;
+        }
+
+        return {result, feeCoin: feeBalance.feeCoin, message};
+    }
+
+    async getFeeBalance(node, coin, address) {
+        let feeCoinName = node.coin;
+
+        if (feeCoinName !== coin.code) {
+            const balance = await this.apiClient.getBalance(node.name, address, feeCoinName);
+            return { balance: balance.balance[0].value, feeCoin: feeCoinName };
+        } else {
+            return { balance: 0, feeCoin: coin.code };
+        }
     }
 }
 

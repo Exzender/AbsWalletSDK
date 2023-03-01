@@ -5,6 +5,7 @@ Q:
 4. How to proxify WSS requests ?
 6. Propagate error from API to SDK (now they are replaced) - may use source mechanics - specify errors for every command
 8. Teach SDK work without loaded coins (just by contract address) ?
+9. Will SDK-prepared txs work with WC 2.0 ?
 
     SDK functions
 
@@ -23,6 +24,8 @@ Q:
 21. Check balance function
 ! 4.1. Get XPUB different for each network !
 17.2. Implement Solana SPL transaction prepare
+22. Implement Rain, Multi-send
+23. Add MongoDB users store
 
     API calls
 + 1. Get Supported Networks: GET /info/networks (API-call)

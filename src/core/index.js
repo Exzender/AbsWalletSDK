@@ -34,6 +34,7 @@ function storeLocalData(fileName, data) {
     fs.writeFileSync(filePath, JSON.stringify(data));
 }
 
+
 /**
  * API client and blockchain module init - called on getting SDK object
  * @returns undefined
@@ -273,6 +274,18 @@ async function signTransaction(chain, transaction, key) {
 }
 
 /**
+ * Check available balance (including fee) prior sending
+ * @param {string} chain blockchain name
+ * @param {string} address source wallet address
+ * @param {string} token token code or contract address
+ * @param {number} value sending value
+ * @returns {Promise<string>} signed and serialized transaction
+ */
+async function checkBalanceAndFee(chain, address, token, value) {
+    return blockchain.checkBalanceAndFee(chain, address, token, value);
+}
+
+/**
  * Direct RPC call
  * Interact with the blockchain directly by connecting to the blockchain node and communicating with it through JSON-RPC
  * @param {string} chain blockchain name
@@ -305,5 +318,6 @@ module.exports = {
     broadcastTransaction,
     buildTransaction,
     signTransaction,
+    checkBalanceAndFee,
     directRpcCall
 }
