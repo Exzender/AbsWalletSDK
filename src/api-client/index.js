@@ -36,6 +36,7 @@ async function getTokenInfo(code) {
 
 async function getBalance(chain, address, token) {
     const tkn = token ? `/${token}` : '';
+
     return apiRequest.apiRequest({
         method: 'GET',
         path: `/v1/wallet/balance/${chain}/${address}${tkn}`,

@@ -108,6 +108,37 @@ async function generateWallet(chain, mnemonic = undefined, index = 0) {
     return {address: wallet.walletAddress, xpub, key: wallet.walletKey, mnemonic: mnemo};
 }
 
+
+/**
+ * Generate wallets for all chains in one call
+ * @param {string} [mnemonic] if omitted - random mnemonic will be generated
+ * @returns {Promise<object>} all wallets in one object
+ */
+async function generateAllWallets(mnemonic) {
+    const mnemo = mnemonic || (await blockchain.generateMnemonic());
+
+    let wallets = {mnemonic: mnemo};
+    const platforms = new Set();
+
+    const networks = getLocalData(LOCAL_NODES);
+
+    for (const net of networks) {
+        if (platforms.has(net.platform)) continue;
+
+        const prefix = net.platform;
+
+        let wallet = await blockchain.registerWallet(net.id, mnemo);
+        platforms.add(net.platform);
+
+        console.log(wallet.walletAddress);
+
+        wallets[prefix] = {address: wallet.walletAddress, key: wallet.walletKey};
+    }
+
+    return wallets;
+}
+
+
 /**
  * Get list of supported networks from API
  * @returns {Promise<array<object>>} supported networks
@@ -309,6 +340,7 @@ module.exports = {
     init,
     generateMnemonic,
     generateWallet,
+    generateAllWallets,
     getNetworks,
     getTokens,
     getTokenInfo,

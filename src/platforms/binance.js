@@ -10,16 +10,21 @@ class Binance {
     }
 
     switchRpc() {
-        const rpcUrl = `${this.apiClient.getApiPath()}/bnb/${this.apiClient.getApiKey()}`;
+        const rpcUrl = `https://dex.binance.org`;
+        // const rpcUrl = `${this.apiClient.getApiPath()}/bnb/${this.apiClient.getApiKey()}`;
         return new BncClient(rpcUrl);
     }
 
     async setNodes(nodes) {
         if (nodes) {
             this.node = nodes[0];
-            this.bnbClient = this.switchRpc();
+            this.bnbClient = await this.switchRpc();
             this.bnbClient.chooseNetwork('mainnet');
-            this.bnbClient.initChain().then();
+            await this.bnbClient.initChain().then()
+                .catch(e => {
+                    console.log('error initChain');
+                    console.error(e)
+                });
         } else {
             this.node = null;
             this.bnbClient = null;
