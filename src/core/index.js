@@ -130,8 +130,6 @@ async function generateAllWallets(mnemonic) {
         let wallet = await blockchain.registerWallet(net.id, mnemo);
         platforms.add(net.platform);
 
-        console.log(wallet.walletAddress);
-
         wallets[prefix] = {address: wallet.walletAddress, key: wallet.walletKey};
     }
 
