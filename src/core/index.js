@@ -1,3 +1,4 @@
+'use strict';
 const apiClient = require('./../api-client');
 const { Blockchain } = require('./../blockchain');
 const fs = require('fs');
@@ -48,7 +49,7 @@ function init (apiKey, url, ignoreSsl) {
  * Get blockchain nodes/tokens information from API and configures each supported blockchain for later use
  * Nodes/tokens information then stored locally. To refresh information from API set forceRefresh to true
  * @param {boolean} [forceRefresh=false] always get actual networks & tokens list from API
- * @returns {Promise<undefined>}
+ * @returns {Promise<object>} blockchain object if needed direct access to it's functions
  */
 async function initBlockchain(forceRefresh = false) {
     try {
@@ -79,6 +80,8 @@ async function initBlockchain(forceRefresh = false) {
             storeLocalData(LOCAL_NODES, networks);
             storeLocalData(LOCAL_TOKENS, tokens);
         }
+
+        return blockchain;
 
     } catch (error) {
         throw new Error (`Init Blockchains error ${error.toString()}` );

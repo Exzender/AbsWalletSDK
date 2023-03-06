@@ -1,0 +1,199 @@
+'use strict';
+const MongoClient = require('mongodb').MongoClient;
+
+const { encryptAsync, decryptAsync, generateRandomPassword } = require('./../utils');
+
+const dbUri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+const pkUri = process.env.MONGOPK_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017';
+const dbName = process.env.MONGODB_NAME || 'abwsdkdb';
+const pkName = process.env.MONGOPK_NAME || 'abwpkdb';
+
+class AbwDatabase {
+    constructor() {
+
+        let options = {
+            useUnifiedTopology: true
+        };
+
+        this.mongoClient = new MongoClient(dbUri, options);
+        this.mongoPkClient = new MongoClient(pkUri, options);
+
+        this.init = this.init.bind(this);
+    }
+
+    /**
+     * Connect to mongo DB server(s)
+     * @param {object} blockchain blockchain object got from call to abwSDK.initBlockchain()
+     */
+    async init(blockchain) {
+
+        if (this.usersTable) return;
+
+        this.blockchain = blockchain;
+
+        const db = this.mongoClient.connect();
+        const pk = this.mongoPkClient.connect();
+
+        try {
+
+            const [ clientDb, clientPk ] = await Promise.all([db, pk]);
+
+            const clDb = clientDb.db(dbName);
+            this.usersTable = clDb.collection('users');
+
+            const pkDb = clientPk.db(pkName);
+            this.mnemoTable = pkDb.collection('mnemonic');
+            // this.keysTable = pkDb.collection('keys');
+
+        } catch (e) {
+            console.error(`Error connecting to DB: ${e.toString()}`);
+        }
+    }
+
+    /**
+     * Stores/updates encrypted keys & mnemonic
+     * @param {string|number} id user ID
+     * @param {object} object JSON object holding mnemonic & keys
+     * @param {number} [index=0] for later use to provide multi-wallets per user
+     * @returns {Promise<object>} result of mongo DB operation
+     */
+    async updateKeys(id, object, index = 0) {
+        return this.mnemoTable.updateOne({user_id: id, index: index},{$set: object}, { upsert: true })
+            .catch((e) => console.error(`mongo error: ${e.stack}`));
+    }
+
+    /**
+     * Stores/updates user into DB.
+     * Private keys encrypted on the fly and stored to another DB
+     * user_id property is mandatory and must be unique
+     * @param {object} user JSON object with user params
+     * @returns {Promise<object>} result of mongo DB operation
+     */
+    async storeUser(user) {
+
+        if (!user.user_id) {
+            throw new Error('User object must have "user_id" property');
+        }
+
+        let parsedUser;
+        if (user.wallet) {
+
+            parsedUser = {
+                ...user
+            }
+
+            delete parsedUser.wallet;
+
+            let parsedWallet = {
+                ...user.wallet
+            }
+
+            if (!parsedUser.pass_hash) {
+                parsedUser.pass_hash = generateRandomPassword();
+            }
+
+            let updateKeysObject = {};
+
+            for (let prop of Object.keys(user.wallet)) {
+                if (prop.toLowerCase() === 'mnemonic') {
+                    updateKeysObject.mnemonic = await encryptAsync(parsedWallet[prop], parsedUser.pass_hash);
+                    delete parsedWallet[prop];
+                } else {
+                    updateKeysObject[prop] = await encryptAsync(parsedWallet[prop].key, parsedUser.pass_hash);
+                    delete parsedWallet[prop].key;
+                }
+            }
+
+            if (Object.keys.length) {
+                await this.updateKeys(parsedUser.user_id, updateKeysObject);
+            }
+
+            parsedUser.wallet = parsedWallet;
+
+        } else {
+            parsedUser = {
+                ...user
+            }
+        }
+
+        return this.usersTable.updateOne({ user_id: parsedUser.user_id }, { $set: parsedUser }, { upsert: true });
+    }
+
+    /**
+     * Get user from DB by ID (user_id)
+     * Returned object does not have mnemonic of private keys
+     * @param {string|number} id unique user ID (user_id)
+     * @returns {Promise<object>} JSON object if found
+     */
+    async getUser(id) {
+        return this.usersTable.findOne({ user_id: id });
+    }
+
+    /**
+     * Get array of users from DB by any property
+     * @param {object} query JSON object with search properties
+     * @returns {Promise<array<object>>} array of JSON objects if found
+     */
+    async getUsers(query) {
+        return this.usersTable.find(query).toArray();
+    }
+
+    /**
+     * Get decoded user's mnemonic phrase by user's ID
+     * @param {string|number} id unique user ID (user_id)
+     * @param {number} [index=0] for later use to provide multi-wallets per user
+     * @returns {Promise<string>} mnemonic phrase
+     */
+    async getWalletMnemonic(id, index = 0) {
+        const userKeys = await this.mnemoTable.findOne({ user_id: id, index: index });
+
+        if (userKeys) {
+            try {
+                const user = await this.getUser(id);
+                return decryptAsync(userKeys['mnemonic'], user.pass_hash);
+            } catch (e) {
+                throw new Error('Error getting user key');
+            }
+        }
+    }
+
+    /**
+     * Get decoded user's key by user's ID and chain name
+     * @param {string|number} id unique user ID (user_id)
+     * @param {string} chain chain name
+     * @param {number} [index=0] for later use to provide multi-wallets per user
+     * @returns {Promise<string>} private key
+     */
+    async getWalletKey(id, chain, index = 0) {
+        const platform = this.blockchain.getPlatformName(chain);
+
+        const userKeys = await this.mnemoTable.findOne({ user_id: id, index: index });
+
+        if (userKeys) {
+            try {
+                const user = await this.getUser(id);
+                return decryptAsync(userKeys[platform], user.pass_hash);
+            } catch (e) {
+                throw new Error('Error getting user key');
+            }
+        }
+    }
+
+    /**
+     * Get user's wallet address by user's ID and chain name.
+     * Addresses for chains with same platform - are equal.
+     * But it some cases they need to be converted (for example: polka based chains).
+     * @param {object} user JSON object - user
+     * @param {string} chain chain name
+     * @returns {Promise<string>} address
+     */
+    async getWalletAddress(user, chain) {
+
+        const platform = this.blockchain.getPlatformName(chain);
+        const node = this.blockchain.getNode(chain);
+
+        return this.blockchain.finalizeAddress(node, user.wallet[platform].address);
+    }
+}
+
+module.exports = new AbwDatabase();

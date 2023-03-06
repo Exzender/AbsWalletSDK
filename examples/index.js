@@ -1,5 +1,6 @@
 const AbwSDK = require('./../src');
 const kms = require('./../src/kms');
+const abwDB = require('../src/databse');
 
 const apiUrl = process.env.API_URL;
 const apiKey = process.env.API_KEY;
@@ -12,22 +13,68 @@ const firstMnemonic = 'ball enjoy renew claim elder napkin soon loyal brave rail
 async function test() {
     // NOTE set ignoreSsl = true for local work with self-signed certs on API server
     // NOTE set url to API server address
-    const abwSDK = AbwSDK({ apiKey: apiKey, url: apiUrl});
+    const abwSDK = AbwSDK({ apiKey: apiKey, url: apiUrl, ignoreSsl : true});
+
+    let blockchain;
+
     try {
-        await abwSDK.initBlockchain();
+        // blockchain object will be used to init mongoDB object
+        blockchain = await abwSDK.initBlockchain();
     } catch (e) {
         console.log(e);
         process.exit(1);
     }
 
-    const chain = 'clo';
+    let chain = 'clo';
+    let token = 'AWC';
+    let userId = 111;
 
     try {
-        // test TX sending
-        const mnemonic = abwSDK.generateMnemonic(12);
-        console.log(mnemonic);
+        // generate wallets for all supported platforms in one call
+        // this object can not be saved in KMS
+        let allWallets = await abwSDK.generateAllWallets();
+        console.log(allWallets);
 
-        let wallet = abwSDK.generateWallet(chain, mnemonic);
+        // test user
+        const user = {
+            user_id: userId,
+            wal: 'xxx',
+            param: {v1: 1, v2: 'kk'},
+            wallet: allWallets
+        }
+
+        console.log(user);
+
+        /**
+         *  Store wallet in Mongo DB
+         */
+
+        // initialize Mongo DB
+        await abwDB.init(blockchain);
+
+        // store or update user to DB
+        await abwDB.storeUser(user);
+
+        // get stored user from DB
+        const u = await abwDB.getUser(userId);
+        console.log(u);
+
+        // get private key from DB
+        const w = await abwDB.getWalletKey(userId, chain);
+        console.log(w);
+
+        // get processed/converted address from user
+        const adr = await abwDB.getWalletAddress(u, chain);
+        console.log(adr);
+
+        const m = await abwDB.getWalletMnemonic(userId);
+        console.log(m);
+
+        // test TX sending
+        // const mnemonic = abwSDK.generateMnemonic(12);
+        // console.log(mnemonic);
+        //
+        // let wallet = abwSDK.generateWallet(chain, mnemonic);
         // console.log('wallet: ', wallet);
 
         /**
@@ -45,8 +92,8 @@ async function test() {
         // const key = kms.getPrivateKey(firstWalletId, password);
         // console.log('Get key: ', key);
 
-        const chainWallets = kms.getWalletsByChain(chain, password);
-        console.log('chainWallets: ', chainWallets);
+        // const chainWallets = kms.getWalletsByChain(chain, password);
+        // console.log('chainWallets: ', chainWallets);
 
         // const mnemoWallets = await kms.getWalletByMnemonic(firstMnemonic, password, chain);
         // console.log('mnemoWallets: ', mnemoWallets);

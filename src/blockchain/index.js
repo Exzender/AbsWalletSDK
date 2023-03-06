@@ -236,6 +236,10 @@ class Blockchain  {
         return this.finalizeAddress(node, address);
     }
 
+    getNode(chain) {
+        return  this.nodesMap.get(chain);
+    }
+
     async addressFromKey(chain, key) {
         const platformName = this.getPlatformName(chain);
         const platform = await this.getPlatform(platformName);

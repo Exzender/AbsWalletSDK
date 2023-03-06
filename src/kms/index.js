@@ -1,5 +1,4 @@
 const fs = require('fs');
-const path = require('path');
 const { AES, enc } = require('crypto-js');
 const { v4: uuid } = require('uuid');
 const { isPathExists } = require('./../utils');

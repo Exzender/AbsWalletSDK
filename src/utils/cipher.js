@@ -29,7 +29,7 @@ function getKey(password) {
     return crypto.createHash('sha256').update(String(password)).digest('base64').substring(0, 32);
 }
 
-function encryptAsync(data, password) {
+async function encryptAsync(data, password) {
     const key = getKey(password);
     const iv = getIv(password);
     // console.log('key: ', key);
@@ -48,7 +48,7 @@ function encryptAsync(data, password) {
     });
 }
 
-function decryptAsync(data, password) {
+async function decryptAsync(data, password) {
 
     // console.log('decryptAsync', data, password);
 
