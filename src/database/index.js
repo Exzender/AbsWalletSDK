@@ -40,6 +40,7 @@ class AbwDatabase {
 
             const clDb = clientDb.db(dbName);
             this.usersTable = clDb.collection('users');
+            this.walletConnect = clDb.collection('wallet_connect');
 
             const pkDb = clientPk.db(pkName);
             this.mnemoTable = pkDb.collection('mnemonic');
@@ -52,13 +53,13 @@ class AbwDatabase {
 
     /**
      * Stores/updates encrypted keys & mnemonic
-     * @param {string|number} id user ID
+     * @param {string|number} user_id user ID
      * @param {object} object JSON object holding mnemonic & keys
      * @param {number} [index=0] for later use to provide multi-wallets per user
      * @returns {Promise<object>} result of mongo DB operation
      */
-    async updateKeys(id, object, index = 0) {
-        return this.mnemoTable.updateOne({user_id: id, index: index},{$set: object}, { upsert: true })
+    async updateKeys(user_id, object, index = 0) {
+        return this.mnemoTable.updateOne({user_id: user_id, index: index},{$set: object}, { upsert: true })
             .catch((e) => console.error(`mongo error: ${e.stack}`));
     }
 
@@ -120,13 +121,13 @@ class AbwDatabase {
     }
 
     /**
-     * Get user from DB by ID (user_id)
+     * Get user from DB by (user_id)
      * Returned object does not have mnemonic of private keys
-     * @param {string|number} id unique user ID (user_id)
+     * @param {string|number} user_id unique user ID (user_id)
      * @returns {Promise<object>} JSON object if found
      */
-    async getUser(id) {
-        return this.usersTable.findOne({ user_id: id });
+    async getUser(user_id) {
+        return this.usersTable.findOne({ user_id: user_id });
     }
 
     /**
@@ -140,16 +141,16 @@ class AbwDatabase {
 
     /**
      * Get decoded user's mnemonic phrase by user's ID
-     * @param {string|number} id unique user ID (user_id)
+     * @param {string|number} user_id unique user ID (user_id)
      * @param {number} [index=0] for later use to provide multi-wallets per user
      * @returns {Promise<string>} mnemonic phrase
      */
-    async getWalletMnemonic(id, index = 0) {
-        const userKeys = await this.mnemoTable.findOne({ user_id: id, index: index });
+    async getWalletMnemonic(user_id, index = 0) {
+        const userKeys = await this.mnemoTable.findOne({ user_id: user_id, index: index });
 
         if (userKeys) {
             try {
-                const user = await this.getUser(id);
+                const user = await this.getUser(user_id);
                 return decryptAsync(userKeys['mnemonic'], user.pass_hash);
             } catch (e) {
                 throw new Error('Error getting user key');
@@ -159,19 +160,19 @@ class AbwDatabase {
 
     /**
      * Get decoded user's key by user's ID and chain name
-     * @param {string|number} id unique user ID (user_id)
+     * @param {string|number} user_id unique user ID (user_id)
      * @param {string} chain chain name
      * @param {number} [index=0] for later use to provide multi-wallets per user
      * @returns {Promise<string>} private key
      */
-    async getWalletKey(id, chain, index = 0) {
+    async getWalletKey(user_id, chain, index = 0) {
         const platform = this.blockchain.getPlatformName(chain);
 
-        const userKeys = await this.mnemoTable.findOne({ user_id: id, index: index });
+        const userKeys = await this.mnemoTable.findOne({ user_id: user_id, index: index });
 
         if (userKeys) {
             try {
-                const user = await this.getUser(id);
+                const user = await this.getUser(user_id);
                 return decryptAsync(userKeys[platform], user.pass_hash);
             } catch (e) {
                 throw new Error('Error getting user key');
@@ -194,6 +195,32 @@ class AbwDatabase {
 
         return this.blockchain.finalizeAddress(node, user.wallet[platform].address);
     }
+
+    /** WalletConnect */
+    async getWalletConnects() {
+        return this.walletConnect.find({}).toArray();
+    };
+
+    async getWalletConnect (filter) {
+        return this.walletConnect.findOne(filter);
+    };
+
+    async calcWalletConnect (userId) {
+        return this.walletConnect.countDocuments({user_id: userId});
+    };
+
+    async deleteWalletConnect (peerId) {
+        return this.walletConnect.deleteOne({peer_id: peerId}).catch((e) => {
+            console.error(`mongo error: ${e}`);
+        });
+    };
+
+    async insertWalletConnect (connection) {
+        return this.walletConnect.updateOne({ peer_id: connection.peer_id }, {$set: connection}, { upsert: true })
+            .catch((e) => {
+                console.error(`mongo error: ${e}`);
+            });
+    };
 }
 
 module.exports = new AbwDatabase();

@@ -5,6 +5,7 @@ const WalletJS = require('ethereumjs-wallet').default
 const ERC20Contract = require('erc20-contract-js');
 const Tx = require('ethereumjs-tx').Transaction;
 const Common = require('ethereumjs-common').default;
+const sigUtil = require('eth-sig-util');
 
 const coinGas = 21000;
 const tokenGas = 100000; // 60000 for some tokens
@@ -19,6 +20,7 @@ class EtherPlatform {
         this.nodesMap = new Map();
         this.apiClient = apiClient;
         this.coinFormat = require('./../blockchain').coinFormat;
+        this.convertHexToUtf8 = require('./../blockchain/utils').convertHexToUtf8;
     }
 
     async setNodes(nodes) {
@@ -153,23 +155,55 @@ class EtherPlatform {
 
     async signTransaction(node, transaction, key) {
         const address = this.addressFromKey(key);
+
+        const rpc = `${this.apiClient.getApiPath()}/${node.name}/${this.apiClient.getApiKey()}`;
+        const ether = new Web3(new Web3.providers.HttpProvider(rpc));
+
+        let gas;
+        if (!transaction.gas) {
+            gas = await this.apiClient.estimateGasFee(node.name, transaction);
+        } else {
+            gas = transaction.gas;
+        }
+
+        let txFeeGwei;
+        try {
+            txFeeGwei = await ether.eth.getGasPrice();
+        } catch (e) {
+            txFeeGwei = 150;
+        }
+
+        if (txFeeGwei < 1000) {
+            txFeeGwei = Web3.utils.toWei(txFeeGwei.toString(), 'Gwei')
+        }
+
+        let nonce;
+        if (!transaction.nonce) {
+            nonce = await this.apiClient.getTransactionCount(node.name, address);
+        } else {
+            nonce = transaction.nonce;
+        }
+
         let txObject = {
-            nonce: Web3.utils.toHex(transaction.nonce),
+            nonce: Web3.utils.toHex(nonce),
             to: transaction.to,
             from: address,
-            chainId: Web3.utils.toHex(transaction.chainId),
+            chainId: Web3.utils.toHex(transaction.chainId || node.chain_id),
             value:    Web3.utils.toHex(transaction.value),
-            gasPrice: Web3.utils.toHex(Web3.utils.toWei('20', 'Gwei')),
-            gasLimit: Web3.utils.toHex(transaction.gas)
+            gasPrice: Web3.utils.toHex(txFeeGwei),
+            gasLimit: Web3.utils.toHex(gas)
         }
+
         if (transaction.data) txObject.data = transaction.data;
+
+        console.log(txObject);
 
         const customCommon = Common.forCustomChain(
             'mainnet',
             {
                 name: 'private-blockchain',
                 networkId: 123,
-                chainId: transaction.chainId
+                chainId: transaction.chainId || node.chain_id
             },
             'istanbul',
         );
@@ -183,6 +217,64 @@ class EtherPlatform {
             throw new Error (`${node.name} Sign TX error ${error.toString()}` );
         }
     }
+
+    async signExtTransaction(params, key, node) {
+        const rpc = `${this.apiClient.getApiPath()}/${node.name}/${this.apiClient.getApiKey()}`;
+        const ether = new Web3(new Web3.providers.HttpProvider(rpc));
+
+        let txConfig = {
+            ...params.txConfig
+        }
+
+        const estGas = await this.apiClient.estimateGasFee(node.name, txConfig);
+        txConfig.gas = estGas + Math.floor(estGas * 0.2);
+        try{
+            return await ether.eth.accounts.signTransaction(txConfig, `0x${key}`);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+
+    async sendExtTransaction(params, key, node) {
+        try {
+            let txConfig = {
+                ...params.txConfig
+            }
+            const tx = await this.signTransaction(node, txConfig, key);
+            return this.apiClient.broadcastTransaction(node.name, tx);
+        } catch (e) {
+            console.error(e.toString());
+            return null;
+        }
+    }
+
+    async signExtTypedData(params, key) {
+        const msgParams = JSON.parse(params.typedData);
+        const keyBuff = Buffer.from(key, 'hex');
+
+        try {
+            return sigUtil.signTypedData_v4(keyBuff, {data: msgParams});
+        } catch (e) {
+            console.error(e.toString());
+            return null;
+        }
+    }
+
+    async signExtMessage(params, key) {
+        const ether = new Web3('ws://localhost:8546');
+
+        let msg = this.convertHexToUtf8(params.message);
+
+        try {
+            const res = ether.eth.accounts.sign(msg, key);
+            return res.signature;
+        } catch (e) {
+            console.error(e);
+            return null;
+        }
+    }
+
 }
 
 exports.EtherPlatform = EtherPlatform;

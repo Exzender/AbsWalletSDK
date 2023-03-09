@@ -61,6 +61,8 @@ class Blockchain  {
         // NOTE: for  BTC test network
         const tbitcoin = new Bitcoin( 'tbitcoin', apiClient, 'test');
         this.platformMap.set('tbitcoin', tbitcoin);
+
+        this.getPlatformName = this.getPlatformName.bind(this);
     }
 
     async initCoins(coins) {
@@ -240,6 +242,14 @@ class Blockchain  {
         return  this.nodesMap.get(chain);
     }
 
+    getChainById(chainId) {
+        for (let node of this.nodesMap.values()) {
+            if (node.chain_id === chainId) {
+                return node;
+            }
+        }
+    }
+
     async addressFromKey(chain, key) {
         const platformName = this.getPlatformName(chain);
         const platform = await this.getPlatform(platformName);
@@ -366,6 +376,40 @@ class Blockchain  {
         } else {
             return { balance: 0, feeCoin: coin.code };
         }
+    }
+
+    async signExtTransaction(params, key) {
+        const node = this.nodesMap.get(params.nodeName);
+        if (!['ether', 'solana', 'polka', 'tron'].includes(node.platform)) return;
+
+        const platform = await this.getPlatform(node.platform);
+        return platform ? platform.signExtTransaction(params, key, node) : 0;
+    }
+
+    async sendExtTransaction(params, key) {
+        const node = this.nodesMap.get(params.nodeName);
+        if (node.platform !== 'ether') return;
+
+        const platform = await this.getPlatform(node.platform);
+        return platform ? platform.sendExtTransaction(params, key, node) : 0;
+    }
+
+    async signExtMessage(params, key) {
+        const node = this.nodesMap.get(params.nodeName);
+        if (!['ether', 'solana', 'polka', 'tron'].includes(node.platform)) return;
+
+        console.log(node);
+
+        const platform = await this.getPlatform(node.platform);
+        return platform ? platform.signExtMessage(params, key, node) : 0;
+    }
+
+    async signExtTypedData(params, key) {
+        const node = this.nodesMap.get(params.nodeName);
+        if (node.platform !== 'ether') return;
+
+        const platform = await this.getPlatform(node.platform);
+        return platform ? platform.signExtTypedData(params, key) : 0;
     }
 }
 

@@ -122,6 +122,25 @@ class TronPlatform {
             throw new Error (`Tron Sign TX error ${error.toString()}` );
         }
     }
+
+
+    async signExtMessage(params, key) {
+        const web = this.rpcMap.get('trx');
+        if (!web) return 0;
+
+        const signedtxn = await web.trx.signMessageV2(params.message, key);
+        return {signature: signedtxn};
+    }
+
+    async signExtTransaction(params, key) {
+        const web = this.rpcMap.get('trx');
+        if (!web) return 0;
+
+        const fixKey = key.replace(/^0x/g,'');
+
+        const signedtxn = await web.trx.sign(params.txConfig.transaction, fixKey);
+        return {result: signedtxn}
+    }
 }
 
 exports.TronPlatform = TronPlatform;

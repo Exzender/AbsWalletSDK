@@ -1,10 +1,14 @@
 const { Keypair, PublicKey, LAMPORTS_PER_SOL, Transaction, SystemProgram } = require('@solana/web3.js');
 const splToken = require('@solana/spl-token');
+const bs58 = require('bs58');
+const nacl = require('tweetnacl');
+const { deserialiseTransaction } = require('./solana_utils');
 
 class SolanaPlatform {
     constructor(apiClient) {
         this.rpcMap = new Map();
         this.apiClient = apiClient;
+        this.convertHexToUtf8 = require('./../blockchain/utils').convertHexToUtf8;
     }
 
     async setNodes(nodes) {
@@ -140,6 +144,39 @@ class SolanaPlatform {
         }
 
         return transaction
+    }
+
+    async signExtMessage(params, key) {
+        const keyArray = new Uint8Array(Buffer.from(key, 'base64'));
+
+        let msg = this.convertHexToUtf8(params.message);
+        const signature = nacl.sign.detached(bs58.decode(msg), keyArray);
+        const bs58Signature = bs58.encode(signature);
+
+        return { signature: bs58Signature };
+    }
+
+    async signExtTransaction(params, key) {
+        const keyArray = new Uint8Array(Buffer.from(key, 'base64'));
+        const payer = Keypair.fromSecretKey(keyArray);
+
+        const serialisedTransaction = {
+            feePayer: params.txConfig.feePayer,
+            instructions: params.txConfig.instructions,
+            recentBlockhash: params.txConfig.recentBlockhash,
+            partialSignatures: params.txConfig.partialSignatures || []
+        }
+        const transaction = deserialiseTransaction(serialisedTransaction);
+
+        transaction.sign(payer);
+
+        const primarySigPubkeyPair = transaction.signatures[0];
+
+        if (!primarySigPubkeyPair.signature) {
+            console.error('Missing solana signature');
+        }
+
+        return {signature: bs58.encode(primarySigPubkeyPair.signature)};
     }
 }
 

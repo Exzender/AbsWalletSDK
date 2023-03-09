@@ -1,6 +1,7 @@
 const { ApiPromise, WsProvider, HttpProvider } = require('@polkadot/api');
 const { Keyring } = require('@polkadot/keyring');
 const { TypeRegistry } = require('@polkadot/types');
+const { u8aToHex } = require('@polkadot/util');
 const bip39 = require('bip39');
 
 const rpcs = new Map ([
@@ -97,6 +98,24 @@ class PolkaPlatform {
             throw new Error (`${node.name} Sign TX error ${error.toString()}` );
         }
     }
+
+
+    async signExtMessage(params, key) {
+        const pair = this.getKeyPair(key);
+        return { signature: u8aToHex(pair.sign(params.message)) }
+    }
+
+    async signExtTransaction(params, key) {
+        const pair = this.getKeyPair(key);
+        this.registry.setSignedExtensions(params.txConfig.signedExtensions)
+        const txPayload = this.registry.createType('ExtrinsicPayload', params.txConfig, {
+            version: params.txConfig.version
+        });
+
+        const { signature } = txPayload.sign(pair);
+        return { signature };
+    }
+
 }
 
 exports.PolkaPlatform = PolkaPlatform;

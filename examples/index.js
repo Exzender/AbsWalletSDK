@@ -1,6 +1,6 @@
 const AbwSDK = require('./../src');
 const kms = require('./../src/kms');
-const abwDB = require('../src/databse');
+const abwDB = require('../src/database');
 
 const apiUrl = process.env.API_URL;
 const apiKey = process.env.API_KEY;

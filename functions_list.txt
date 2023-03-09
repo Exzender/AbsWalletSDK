@@ -27,7 +27,11 @@ Q:
 
 + 23. Add MongoDB users store
 
-! 4.1. Get XPUB different for each network !
++ 25. Add Wallet connect support
+! 25.1. Add functions descriptions
+! 26. Create more use examples (split up one file)
+
+4.1. Get XPUB different for each network !
 17.2. Implement Solana SPL transaction prepare
 22. Implement Rain, Multi-send
 
@@ -51,13 +55,25 @@ Q:
 + 2. Encrypted local JSON file
 
     DB
-1. Mongo
-2. Can work with 1 or 2 connects (different servers)
-3. Can have default or user-provided DB names
-4. Save / get / update / search (by ID or param) - users
-5. Get key / mnemonic for user / chain
-6. Don't connect if not used
++ 1. Mongo
++ 2. Can work with 1 or 2 connects (different servers)
++ 3. Can have default or user-provided DB names
++ 4. Save / get / update / search (by ID or param) - users
++ 5. Get key / mnemonic for user / chain
++ 6. Don't connect if not used
 7. Tweet / retweet ?
+
+    WC (1 & 2)
+! 0. Auto-create folder
+! 8. Add more responses on request approve
+
++ 1. New connect - receive wc-string/userID - return status ? info ?
++ 2. Get current connects - by userID - return wcIDs + info ?
++ 3. Disconnect - by wcID
++ 4. Change network - by wcID
++ 5. Events pass-through
++ 6. Confirm Event (eventID)
++ 7. Reject Event (eventID)
 
     Test broadcasting
 + 1. APTOS - fully work

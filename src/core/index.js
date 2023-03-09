@@ -337,6 +337,15 @@ async function directRpcCall(chain, method, body, rpcPath) {
     return apiClient.directRpcCall(chain, method, body, rpcPath);
 }
 
+/**
+ * Return network information by its chain id
+ * @param {string|number} chainId string or number ID
+ * @returns {Promise<object>} network info
+ */
+async function getChainById(chainId) {
+    return blockchain.getChainById(chainId);
+}
+
 module.exports = {
     init,
     generateMnemonic,
@@ -359,5 +368,6 @@ module.exports = {
     buildTransaction,
     signTransaction,
     checkBalanceAndFee,
-    directRpcCall
+    directRpcCall,
+    getChainById
 }
