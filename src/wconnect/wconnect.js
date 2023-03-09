@@ -5,6 +5,7 @@ const { caipMap } = require('../const');
 const { WConnector } = require('./wconnector');
 const { WConnector2 } = require('./wconnector2');
 const EventEmitter = require('events');
+const {isPathExists} = require('../utils');
 
 const homedir = require('os').homedir();
 const wc2LocalPath = `${homedir}/.abwsdk/wc2db`;
@@ -70,14 +71,14 @@ class WcEventsHandler extends EventEmitter{
                 chainId = caipName[1];
                 if (!isNaN(Number(chainId))) chainId = Number(chainId);
 
-                const node = (await blockchain.getChainById(chainId)) || {name: 'not_supported', networkName: 'unknown'} ;
+                const node = (await blockchain.getChainById(chainId));// || {name: 'not_supported', networkName: 'unknown'} ;
 
                 let address;
                 if (node) {
                     address = await database.getWalletAddress(params.user, node.name);
                 } else {
                     await connector.rejectSession(params.rqId, params.params.proposer.publicKey);
-                    const str = `WC2 dApp requires UNSUPPORTED network : <code>${node.name}</code>.`;
+                    const str = `WC2 dApp requires UNSUPPORTED network ID : ${node.name}.`;
                     throw new Error(str);
                 }
 
@@ -91,7 +92,6 @@ class WcEventsHandler extends EventEmitter{
             }
         }
 
-        console.log(namespaces);
         const res = await connector.approveSession(params.rqId, namespaces);
 
         //NOTE WC2 sessions saved by SDK in Loki DB
@@ -369,12 +369,32 @@ async function clearWC2db (idList) {
     });
 }
 
-async function initialize(bc, db, meta) {
-    database = db;
+
+/**
+ * @typedef WalletConnectMeta
+ * @property {string} description - client description
+ * @property {string} url - client URL
+ * @property {array<string>} icons - array of Icon urls
+ * @property {string} name - client name
+ */
+
+/**
+ * Initialize wallet connect client
+ * Recover and activate previous sessions
+ * For node.js WalletConnect 2.0 saves sessions in local files using lokijs
+ * @param {object} blockChainObject object returned by abwSDK.initBlockchain
+ * @param {object} databaseObject object returned by abwDB.init
+ * @param {WalletConnectMeta} meta client meta information
+ * @returns {Promise<undefined>} blockchain object if needed direct access to it's functions
+ */
+async function initialize(blockChainObject, databaseObject, meta) {
+    database = databaseObject;
     clientMeta = meta;
-    blockchain = bc;
+    blockchain = blockChainObject;
 
     eventsHandler = new WcEventsHandler();
+
+    isPathExists(`${wc2LocalPath}/1.db`);
 
     const idList = new Set();
 
@@ -484,6 +504,12 @@ function parseRequestParams(connector, sendObj) {
     }
 }
 
+/**
+ * Get info about specific connection
+ * @param {string|number} userId user_id as it stored in DB
+ * @param {string} peerId peer_id as in returned after connect was created
+ * @returns {Promise<object>} JSON object
+ */
 async function getConnectInfo(userId, peerId) {
     let localPeerId;
 
@@ -549,34 +575,40 @@ async function getConnectInfo(userId, peerId) {
 
 
 /** user actions */
+
+/**
+ * Approve request received from dApp
+ * For sign requests - message/transaction will be signed and sent back to dApp
+ * For Send requests (actual for EVM-based chains) - transaction will be signed and sent directly to Blockchain
+ * @param {object} params params as they were received from WC Request Event: wcSign
+ * @param {string} key private key to sign
+ * @returns {Promise<object>} object contains result, message and data - otherwise error is thrown
+ */
 async function approveRequest (params, key) {
     const connector = getConnector(params.user_id, params.peer_id);
     if (!connector) return;
 
     const session = connector.session(params.peer_id);
-    console.log('session:');
-    console.log(session);
 
     if ('txConfig' in params) { // sign message
         if (params.signOnly) {
             try {
                 const tx = await blockchain.signExtTransaction(params, key);
                 connector.approveRequest(params.rq_id, tx.rawTransaction || tx, session.peerId);
-                // TODO emit success or return it
+                // NOTE emit success or return it
+                return {result: 'ok', message: 'TX signed', data: tx.rawTransaction};
             } catch (e) {
                 const msgText = 'Sign Transaction error';
                 console.error(`WC2 sign TX error: ${e}`);
                 connector.rejectRequest(params.rq_id, msgText, session.peerId);
-                // throw new Error(`WC2 sign TX error: ${e}`);
+                throw new Error(`WC2 sign TX error: ${e}`);
             }
         } else {
             try {
                 const res = await blockchain.sendExtTransaction(params, key);
                 if (res) {
-                    // const node = ctx.blockchain.getNode(sendObj.nodeName);
-                    // const txt = `<a href='${node.txExplorer}${res}'>txHash</a>`;
                     connector.approveRequest(params.rq_id, res, session.peerId);
-                    // TODO return success
+                    return {result: 'ok', message: 'TX sent', data: res};
                 } else {
                     const msgText = 'Transaction error';
                     connector.rejectRequest(params.rq_id, msgText, session.peerId);
@@ -595,17 +627,23 @@ async function approveRequest (params, key) {
             ? await blockchain.signExtMessage(params, key)
             : await blockchain.signExtTypedData(params, key);
         if (res) {
-            console.log(res);
             connector.approveRequest(params.rq_id, res, session.peerId);
-            // TODO return success
+            return {result: 'ok', message: 'Message signed', data: res};
         } else {
             const msgText = 'Sign message error';
             connector.rejectRequest(params.rq_id, msgText, session.peerId);
-            // throw new Error(msgText);
+            throw new Error(msgText);
         }
     }
 }
 
+/**
+ * Reject request received from dApp
+ * @param {string|number} user_id as it stored in DB
+ * @param {string} peer_id session ID
+ * @param {chain_id} rq_id request ID
+ * @returns {Promise<undefined>}
+ */
 async function rejectRequest (user_id, peer_id, rq_id) {
     const connector = getConnector(user_id, peer_id);
     if (!connector) return;
@@ -615,6 +653,14 @@ async function rejectRequest (user_id, peer_id, rq_id) {
     connector.rejectRequest(rq_id, null, session.peerId);
 }
 
+/**
+ * Call dApp to switch active chain
+ * Not needed for WC2.0
+ * @param {string|number} user_id as it stored in DB
+ * @param {string} peer_id session ID
+ * @param {chain_id} chain_id new chain ID
+ * @returns {Promise<undefined>}
+ */
 async function switchChain (user_id, peer_id, chain_id) {
     const connector = getConnector(user_id, peer_id);
     if (!connector) return;
@@ -625,6 +671,12 @@ async function switchChain (user_id, peer_id, chain_id) {
     await eventsHandler.wcConnected(user_id, session);
 }
 
+/**
+ * Disconnect one walletconnect session
+ * @param {string|number} user_id as it stored in DB
+ * @param {string} peer_id session ID
+ * @returns {Promise<undefined>}
+ */
 async function disconnect (user_id, peer_id) {
     const connector = getConnector(user_id, peer_id);
     if (!connector) {
@@ -711,6 +763,10 @@ async function createConnection (user, connectString,  chainId = 1) {
     }
 }
 
+/**
+ * Get handler object to catch WC events
+ * @returns {object} events handler object
+ */
 function getEventsHandler() {
     return eventsHandler;
 }

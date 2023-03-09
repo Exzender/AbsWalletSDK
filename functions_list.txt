@@ -24,12 +24,10 @@ Q:
 + 23. Implement RPC-calls pass-through
 + 21. Check balance function
 + 22. Added generateAllWallets
-
 + 23. Add MongoDB users store
-
 + 25. Add Wallet connect support
-! 25.1. Add functions descriptions
-! 26. Create more use examples (split up one file)
++ 25.1. Add functions descriptions
++ 26. Create more use examples (split up one file)
 
 4.1. Get XPUB different for each network !
 17.2. Implement Solana SPL transaction prepare
@@ -64,9 +62,7 @@ Q:
 7. Tweet / retweet ?
 
     WC (1 & 2)
-! 0. Auto-create folder
-! 8. Add more responses on request approve
-
++ 0. Auto-create folder
 + 1. New connect - receive wc-string/userID - return status ? info ?
 + 2. Get current connects - by userID - return wcIDs + info ?
 + 3. Disconnect - by wcID
@@ -74,6 +70,7 @@ Q:
 + 5. Events pass-through
 + 6. Confirm Event (eventID)
 + 7. Reject Event (eventID)
++ 8. Add more responses on request approve
 
     Test broadcasting
 + 1. APTOS - fully work

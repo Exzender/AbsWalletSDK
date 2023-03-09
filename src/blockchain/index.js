@@ -261,7 +261,7 @@ class Blockchain  {
 
     getPlatformName(chain) {
         const node = this.nodesMap.get(chain);
-        return node.platform;
+        if (node) return node.platform;
     }
 
     prepareOneTx(node, payload) {
