@@ -5,8 +5,6 @@ Q:
 4. How to proxify WSS requests ?
 6. Propagate error from API to SDK (now they are replaced) - may use source mechanics - specify errors for every command
 8. Teach SDK work without loaded coins (just by contract address) ?
-9. Will SDK-prepared txs work with WC 2.0 ?
-10. How to store multi-wallet in KMS ?
 
     SDK functions
 
@@ -44,8 +42,8 @@ Q:
 + 13. Get block by hash/number (API-call)
 + 10. Get transaction by hash (API-call)
 + 14. Get count of outgoing transactions (nonce) ? (API-call)
-+/- 16. Send Transaction (not tested) (API-call)
-+/- 21. Broadcast signed transaction (not tested - ) (API-call)
++ 16. Send Transaction (API-call)
++ 21. Broadcast signed transaction (API-call)
 + 22. Enable nodes and tokens caching
 + 23. Enable initializing only specific nodes
 
