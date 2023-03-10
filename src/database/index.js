@@ -201,8 +201,9 @@ class AbwDatabase {
     }
 
     /** WalletConnect */
-    async getWalletConnects() {
-        return this.walletConnect.find({}).toArray();
+    async getWalletConnects(userId) {
+        const filter = userId ? {user_id: userId} : {};
+        return this.walletConnect.find(filter).toArray();
     };
 
     async getWalletConnect (filter) {
@@ -246,8 +247,8 @@ class AbwDatabase {
      * @returns {Promise<array<string>>} array of enabled chains (names | ids)
      */
     async switchEnabledChains(user, list, enable) {
-        let activeChains = user ? user['active_chains'] ? user['active_chains'] : [] : [];
-        let hiddenChains = user ? user['hidden_chains'] ? user['hidden_chains'] : [] : [];
+        let activeChains = user['active_chains'] || [];
+        let hiddenChains = user['hidden_chains'] || [];
 
         const chainsMap = new Set(activeChains);
         const hiddenMap = new Set(hiddenChains);
@@ -294,6 +295,78 @@ class AbwDatabase {
         await this.storeUser(user);
 
         return this.getUserChains(user);
+    }
+
+    async getUserCoins (user) {
+        const keys = [];
+
+        const hidden = user.hidden_tokens || [];
+        const set = new Set(hidden);
+        if (user.active_tokens) {
+            for (let tokenId of user.active_tokens) {
+                if (!set.has(tokenId)) {
+                    keys.push(tokenId);
+                }
+            }
+        }
+
+        try {
+            return this.blockchain.getCoreCoins().concat(this.blockchain.getCoinsById(keys));
+        } catch (e) {
+            return [];
+        }
+    };
+
+
+    async switchEnabledTokens(user, list, enable) {
+        console.log(list);
+
+        let activeChains = user['active_tokens'] || [];
+        let hiddenChains = user['hidden_tokens'] || [];
+
+        const activeTokens = new Set(activeChains);
+        const hiddenTokens = new Set(hiddenChains);
+
+        const coreCoins = this.blockchain.getCoreCoins();
+        const coreTokens = coreCoins.map(coin => coin.name);
+
+        if (enable) {
+            // TODO how to make it work with ID's ?
+            for (let token of list) {
+                if (!coreTokens.includes(token)) {
+                    const coin = this.blockchain.getCoinByName(token);
+                    if (coin) {
+                        activeTokens.add(coin._id);
+                        hiddenTokens.delete(coin._id);
+                    }
+                }
+            }
+        } else {
+            for (let token of list) {
+                if (!coreTokens.includes(token)) {
+                    const coin = this.blockchain.getCoinByName(token);
+                    if (coin) {
+                        activeTokens.delete(coin._id);
+                        hiddenTokens.add(coin._id);
+                    }
+                }
+            }
+        }
+
+        user['active_tokens'] = Array.from(activeTokens);
+        user['hidden_tokens'] = Array.from(hiddenTokens);
+
+        await this.storeUser(user);
+
+        return this.getUserCoins(user);
+    }
+
+    async saveTokensFromBalance(user, tokens){
+        const filtered = tokens.map(balance => {
+            return balance.token ? balance.token.name : balance.name;
+        });
+
+        return this.switchEnabledTokens(user, filtered, true);
     }
 }
 

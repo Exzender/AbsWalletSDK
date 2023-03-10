@@ -62,7 +62,7 @@ async function test() {
         const us = await abwDB.getUsers({wa: user.wa});
         console.log(us);
 
-        /** Enabling/diabling active chains */
+        /** Enabling/disabling active chains */
         const chains = abwDB.getUserChains(user);
         console.log(chains);
 
@@ -74,6 +74,23 @@ async function test() {
 
         newChains = await abwDB.switchEnabledChains(user, ['solana'], true);
         console.log(newChains);
+
+        /** Enabling/disabling active tokens */
+        const tokens = await abwDB.getUserCoins(user);
+        console.log(tokens);
+
+        // can enable all found tokens returned by getTokensOnWallet
+        const address = await abwDB.getWalletAddress(user, chain);
+        const balances = await abwSDK.getTokensOnWallet(chain, address);
+        // this will work only for "trusted" tokens
+        let newTokens = await abwDB.saveTokensFromBalance(user, balances['balance']);
+        console.log(newTokens);
+
+        // or just switch on/off list of tokens
+        // base coins of blockchains can not be hidden
+        const list = ['CCCAKE', 'VVT'];
+        newTokens = await abwDB.switchEnabledTokens(user, list, false);
+        console.log(newTokens);
 
     } catch (e) {
         console.error(e.toString());

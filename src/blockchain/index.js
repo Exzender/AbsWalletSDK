@@ -137,6 +137,32 @@ class Blockchain  {
         return this.coinsMap.get(name);
     }
 
+    getCoinsById(ids) {
+        const coins = [];
+        for (let coin of this.coinsMap.values()) {
+            if (ids.includes(coin._id)) {
+                coins.push(coin);
+            }
+        }
+        return coins;
+    }
+
+    getCoreCoins() {
+        const nodes = this.getAllNodes();
+
+        const coreCoinsNames = nodes.map(node => node.coin);
+
+        const coins = [];
+
+        for (let coin of this.coinsMap.values()) {
+            if (coreCoinsNames.includes(coin.code)) {
+                coins.push(coin);
+            }
+        }
+
+        return coins;
+    }
+
     getCoinByContract(contract) {
         const name =  this.coinsContractsMap.get(contract);
         return this.getCoinByName(name);
