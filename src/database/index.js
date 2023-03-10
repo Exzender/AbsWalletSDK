@@ -2,6 +2,7 @@
 const MongoClient = require('mongodb').MongoClient;
 
 const { encryptAsync, decryptAsync, generateRandomPassword } = require('./../utils');
+const { coreChains } = require('./../const');
 
 const dbUri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 const pkUri = process.env.MONGOPK_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017';
@@ -100,8 +101,10 @@ class AbwDatabase {
                     updateKeysObject.mnemonic = await encryptAsync(parsedWallet[prop], parsedUser.pass_hash);
                     delete parsedWallet[prop];
                 } else {
-                    updateKeysObject[prop] = await encryptAsync(parsedWallet[prop].key, parsedUser.pass_hash);
-                    delete parsedWallet[prop].key;
+                    if (parsedWallet[prop].key) {
+                        updateKeysObject[prop] = await encryptAsync(parsedWallet[prop].key, parsedUser.pass_hash);
+                        delete parsedWallet[prop].key;
+                    }
                 }
             }
 
@@ -116,6 +119,7 @@ class AbwDatabase {
                 ...user
             }
         }
+
 
         return this.usersTable.updateOne({ user_id: parsedUser.user_id }, { $set: parsedUser }, { upsert: true });
     }
@@ -221,6 +225,76 @@ class AbwDatabase {
                 console.error(`mongo error: ${e}`);
             });
     };
+
+    /** Customize active (enabled) chains/tokens */
+
+    /**
+     * Get user's preferences: enabled blockchains
+     * @param {object} user JSON object - user
+     * @returns {array<string>} array of enabled chains (names | ids)
+     */
+    getUserChains(user) {
+        let chains = user['active_chains'] || [];
+        return coreChains.concat(chains);
+    }
+
+    /**
+     * Set user's preferences: enable or disable blockchains
+     * @param {object} user JSON object - user
+     * @param {array<string>} list pass empty array ([]) to enable/disable all chains at once
+     * @param {boolean} enable true - to enable chains listed in list
+     * @returns {Promise<array<string>>} array of enabled chains (names | ids)
+     */
+    async switchEnabledChains(user, list, enable) {
+        let activeChains = user ? user['active_chains'] ? user['active_chains'] : [] : [];
+        let hiddenChains = user ? user['hidden_chains'] ? user['hidden_chains'] : [] : [];
+
+        const chainsMap = new Set(activeChains);
+        const hiddenMap = new Set(hiddenChains);
+
+        if (list.length === 0) { // mark all chains
+            const chains = this.blockchain.getAllNodes();
+
+            if (enable) {
+                for (let chain of chains) {
+                    if (!coreChains.includes(chain['name'])) {
+                        chainsMap.add(chain['name']);
+                    }
+                }
+                hiddenMap.clear();
+            } else {
+                for (let chain of chains) {
+                    if (!coreChains.includes(chain['name'])) {
+                        hiddenMap.add(chain['name']);
+                    }
+                }
+                chainsMap.clear();
+            }
+        } else {
+            if (enable) {
+                for (let chain of list) {
+                    if (!coreChains.includes(chain)) {
+                        chainsMap.add(chain);
+                        hiddenMap.delete(chain);
+                    }
+                }
+            } else {
+                for (let chain of list) {
+                    if (!coreChains.includes(chain)) {
+                        chainsMap.delete(chain);
+                        hiddenMap.add(chain);
+                    }
+                }
+            }
+        }
+
+        user['active_chains'] = Array.from(chainsMap);
+        user['hidden_chains'] = Array.from(hiddenMap);
+
+        await this.storeUser(user);
+
+        return this.getUserChains(user);
+    }
 }
 
 module.exports = new AbwDatabase();

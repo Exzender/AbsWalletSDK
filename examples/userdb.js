@@ -29,6 +29,7 @@ async function test() {
 
         const user = {
             user_id: userId,
+            wa: 'something',
             param: {v1: 1, v2: 'kk'},
             wallet: allWallets
         }
@@ -58,8 +59,21 @@ async function test() {
         const m = await abwDB.getWalletMnemonic(userId);
         console.log(m);
 
-        const us = await abwDB.getUsers({wal: user.wal});
+        const us = await abwDB.getUsers({wa: user.wa});
         console.log(us);
+
+        /** Enabling/diabling active chains */
+        const chains = abwDB.getUserChains(user);
+        console.log(chains);
+
+        let newChains = await abwDB.switchEnabledChains(user, [], true);
+        console.log(newChains);
+
+        newChains = await abwDB.switchEnabledChains(user, [], false);
+        console.log(newChains);
+
+        newChains = await abwDB.switchEnabledChains(user, ['solana'], true);
+        console.log(newChains);
 
     } catch (e) {
         console.error(e.toString());

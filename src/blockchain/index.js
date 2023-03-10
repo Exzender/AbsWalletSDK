@@ -245,6 +245,10 @@ class Blockchain  {
         return  this.nodesMap.get(chain);
     }
 
+    getAllNodes() {
+        return [...this.nodesMap.values()];
+    }
+
     getChainById(chainId) {
         for (let node of this.nodesMap.values()) {
             if (node.chain_id === chainId) {

@@ -27,7 +27,8 @@ const chainsPlatforms = new Map([
     ['xdc','ether'],
     ['dot','polka'],
     ['apt','aptos']]);
+const coreChains = ['clo', 'bsc', 'eth'];
 
 
 module.exports = { baseApiPath, baseToken, baseNetwork, defaultPassword, caipMap,
-    validChains, supChains, chainsPlatforms };
+    validChains, supChains, chainsPlatforms, coreChains };
