@@ -61,6 +61,8 @@ Q:
 + 5. Get key / mnemonic for user / chain
 + 6. Don't connect if not used
 7. Tweet / retweet ?
+8. Сохраните в бд балансы / Функция для чтения балансов
+9. Сохранение/получение фаворитов чейнов и токенов по каждому юзеру
 
     WC (1 & 2)
 + 0. Auto-create folder
