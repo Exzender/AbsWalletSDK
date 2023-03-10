@@ -1,9 +1,12 @@
 /**
  * Module with Blockchain functions
  */
+const WAValidator = require('multicoin-address-validator');
+
 const { Binance, EtherPlatform, AptosPlatform, Bitcoin, PolkaPlatform,
     RadixPlatform, SolanaPlatform, TerraPlatform, TronPlatform } = require('./../platforms');
 const { coinFormat } = require('./utils');
+const { validChains, supChains, chainsPlatforms } = require('./../const');
 
 class Blockchain  {
     constructor(apiClient, testNodes = false) {
@@ -410,6 +413,81 @@ class Blockchain  {
 
         const platform = await this.getPlatform(node.platform);
         return platform ? platform.signExtTypedData(params, key) : 0;
+    }
+
+    async isAddressValid(address, chain) {
+        if (chain) {
+            return {result: await this.checkAddress(chain, address), platform: chainsPlatforms.get(chain)};
+        }
+
+        for (let chain of validChains) {
+            const res = WAValidator.validate(address, chain);
+            if (res) {
+                return {result: res, platform: chainsPlatforms.get(chain)};
+            }
+        }
+
+        // xinfin
+        let res1 = await this.checkAddress('CLO', address);
+        if (res1) {
+            return {result: res1, platform: chainsPlatforms.get('eth')};
+        }
+
+        // bnb, radix, terra, aptos, polka
+        for (let chain of supChains) {
+            const res = await this.checkAddress(chain, address);
+            if (res) {
+                return {result: res, platform: chainsPlatforms.get(chain.toLowerCase())};
+            }
+        }
+
+        return {result: false, platform: 'unknown'};
+    }
+
+    async checkAddress(coinName, address) {
+        let coin;
+
+        if (typeof coinName === 'string') {
+            coin = await this.getCoinByName(coinName.toUpperCase());
+        } else {
+            if (coinName.network) {
+                coin = coinName;
+            } else {
+                coin = await this.getCoinByName(coinName.name);
+            }
+
+        }
+        if (!coin) return true;
+
+        let baseName = coin.network.toUpperCase();
+
+        if (['BSC','BTTC'].includes(baseName)) baseName = 'ETH';
+
+        if (coin) {
+            const node = this.nodesMap.get(coin.network);
+            if (!node) return false;
+
+            let token = baseName === 'TBTC' ? 'BTC' : baseName;
+            if (node.coin) {
+                token = node.coin;
+            }
+            if (token === 'TRX_SHA') {
+                token = 'TRX';
+            }
+            if (token === 'TSOL') {
+                token = 'SOL';
+            }
+
+            if (['BTC', 'LTC', 'TRX', 'SOL'].includes(token)) {
+                return WAValidator.validate(address, token);
+            }
+
+            const platform = await this.getPlatform(node.platform);
+            return platform.checkAddress(address);
+        } else {
+
+            return WAValidator.validate(address, baseName);
+        }
     }
 }
 

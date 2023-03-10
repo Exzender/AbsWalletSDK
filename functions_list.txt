@@ -28,6 +28,7 @@ Q:
 + 25. Add Wallet connect support
 + 25.1. Add functions descriptions
 + 26. Create more use examples (split up one file)
++ 27. Add function to check Address validity (and/or detect address blockchain platform)
 
 4.1. Get XPUB different for each network !
 17.2. Implement Solana SPL transaction prepare

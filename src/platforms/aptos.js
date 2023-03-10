@@ -79,8 +79,6 @@ class AptosPlatform {
             console.log('No aptos account - need to init');
         }
 
-        return ;
-
         if (noAccount) {
             const hex = new aptos.HexString(key);
             const account1 = new aptos.AptosAccount(hex.toUint8Array());
@@ -115,6 +113,20 @@ class AptosPlatform {
         } catch (error) {
             throw new Error (`Aptos Sign TX error ${error.toString()}` );
         }
+    }
+
+    async checkAddress(address) {
+        const web = this.rpcMap.get('aptos');
+
+        let noAccount = true;
+        try {
+            await web.getAccount(address);
+            noAccount = false;
+        } catch (e) {
+            console.warn('No aptos account - need to init');
+        }
+
+        return !noAccount;
     }
 }
 

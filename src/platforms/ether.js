@@ -275,6 +275,20 @@ class EtherPlatform {
         }
     }
 
+    checkAddress(address) {
+        const web = new Web3('ws://localhost:8546');
+        let checksumAddress;
+        const adr = address.replace(/^xdc/i, '0x');
+        // console.log(adr);
+        try {
+            checksumAddress = web.utils.toChecksumAddress(adr);
+        } catch (e) {
+            console.warn('invalid ethereum address %s', e.message);
+            return false;
+        }
+        return checksumAddress;
+    }
+
 }
 
 exports.EtherPlatform = EtherPlatform;

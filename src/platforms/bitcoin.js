@@ -189,6 +189,10 @@ class Bitcoin {
         const tx = psbt.extractTransaction(true);
         return  tx.toHex();
     }
+
+    checkAddress() {  // address
+        return true;
+    }
 }
 
 module.exports = {

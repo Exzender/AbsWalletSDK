@@ -147,6 +147,10 @@ class TerraPlatform {
             throw new Error (`Terra Sign TX error ${error.toString()}` );
         }
     }
+
+    checkAddress(address) {
+        return /(terra1[a-z\d]{38})/g.test(address);
+    }
 }
 
 exports.TerraPlatform = TerraPlatform;

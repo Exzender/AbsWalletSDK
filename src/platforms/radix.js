@@ -170,6 +170,11 @@ class RadixPlatform {
             throw new Error (`Radix Sign TX error ${error.toString()}` );
         }
     }
+
+    checkAddress(address) {
+        let acc = AccountAddress.fromUnsafe(address).unwrapOr(false);
+        return AccountAddress.isAccountAddress(acc);
+    }
 }
 
 exports.RadixPlatform = RadixPlatform;

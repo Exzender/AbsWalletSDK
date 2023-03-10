@@ -26,6 +26,14 @@ async function test() {
          *  Generate TX locally and broadcast
          */
 
+        // if you want to know platform where this address is valid
+        const valid = await abwSDK.isAddressValid(targetAddress);
+        console.log(valid);
+
+        // just check validity of address on known chain
+        const valid2 = await abwSDK.isAddressValid(targetAddress, chain);
+        console.log(valid2);
+
         const txPayload = {
             sourceAddress: wallet.address,
             targetAddress: targetAddress,

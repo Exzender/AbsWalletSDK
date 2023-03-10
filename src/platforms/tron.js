@@ -123,7 +123,6 @@ class TronPlatform {
         }
     }
 
-
     async signExtMessage(params, key) {
         const web = this.rpcMap.get('trx');
         if (!web) return 0;
@@ -140,6 +139,10 @@ class TronPlatform {
 
         const signedtxn = await web.trx.sign(params.txConfig.transaction, fixKey);
         return {result: signedtxn}
+    }
+
+    checkAddress() {
+        return true;
     }
 }
 

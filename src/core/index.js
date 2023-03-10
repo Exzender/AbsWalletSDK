@@ -346,6 +346,22 @@ async function getChainById(chainId) {
     return blockchain.getChainById(chainId);
 }
 
+/**
+ * @typedef AddressValidityResult
+ * @property {boolean} result - True if address is valid
+ * @property {string} platform - Name of the blockchain platform for such address
+ */
+
+/**
+ * Check wallet address validity and detect chain platform by address
+ * @param {string} address address to check
+ * @param {string} [chain] if not set - address will be checked against all known chains
+ * @returns {Promise<object>} network info
+ */
+async function isAddressValid(address, chain) {
+    return blockchain.isAddressValid(address, chain);
+}
+
 module.exports = {
     init,
     generateMnemonic,
@@ -369,5 +385,6 @@ module.exports = {
     signTransaction,
     checkBalanceAndFee,
     directRpcCall,
-    getChainById
+    getChainById,
+    isAddressValid
 }

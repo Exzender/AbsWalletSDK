@@ -12,6 +12,22 @@ const caipMap = new Map([
     ['terra', 'terra'],
     ['tron', 'tron']
 ]);
+const validChains = ['btc','ltc','eth','sol','trx', 'doge'];
+const supChains = ['BNB','XRD','LUNA','APT','DOT'];
+const chainsPlatforms = new Map([
+    ['btc','bitcoin'],
+    ['doge','dogecoin'],
+    ['ltc','litecoin'],
+    ['eth','ether'],
+    ['bnb','binance'],
+    ['sol','solana'],
+    ['trx','tron'],
+    ['xrd','radix'],
+    ['luna','terra'],
+    ['xdc','ether'],
+    ['dot','polka'],
+    ['apt','aptos']]);
 
 
-module.exports = { baseApiPath, baseToken, baseNetwork, defaultPassword, caipMap };
+module.exports = { baseApiPath, baseToken, baseNetwork, defaultPassword, caipMap,
+    validChains, supChains, chainsPlatforms };

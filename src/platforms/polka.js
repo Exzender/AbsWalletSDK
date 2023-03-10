@@ -116,6 +116,20 @@ class PolkaPlatform {
         return { signature };
     }
 
+    checkAddress(address) {
+        const keyring = new Keyring();
+
+        let res;
+
+        try {
+            keyring.decodeAddress(address);
+            res = true;
+        } catch (e) {
+            res = false;
+        }
+
+        return res;
+    }
 }
 
 exports.PolkaPlatform = PolkaPlatform;

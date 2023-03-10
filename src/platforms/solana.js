@@ -178,6 +178,10 @@ class SolanaPlatform {
 
         return {signature: bs58.encode(primarySigPubkeyPair.signature)};
     }
+
+    checkAddress() {
+        return true;
+    }
 }
 
 exports.SolanaPlatform = SolanaPlatform;

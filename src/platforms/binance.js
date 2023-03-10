@@ -107,6 +107,10 @@ class Binance {
             sequence, transaction.memo);
         return tx.serialize();
     }
+
+    checkAddress(address) {
+        return this.bnbClient.checkAddress(address, 'bnb');
+    }
 }
 
 module.exports = {
