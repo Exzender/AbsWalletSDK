@@ -106,6 +106,10 @@ async function test() {
         // await abwWC.switchChain(userId, r.peer_id, 56); // 56 - BSC net
         // connInfo = await abwWC.getConnectInfo(userId, r.peer_id);
         // console.log(connInfo);
+
+        // get active sessions for user
+        const conn = await abwDB.getWalletConnects(user.user_id);
+        console.log(conn);
     } catch (e) {
         console.error(e.toString());
     } finally {

@@ -201,6 +201,12 @@ class AbwDatabase {
     }
 
     /** WalletConnect */
+
+    /**
+     * Get active walletconnect sessions for User
+     * @param {string|number} [userId] user ID - if no user ID, all active session returned
+     * @returns {Promise<array<object>>} JSON object with session params
+     */
     async getWalletConnects(userId) {
         const filter = userId ? {user_id: userId} : {};
         return this.walletConnect.find(filter).toArray();
