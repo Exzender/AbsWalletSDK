@@ -303,6 +303,11 @@ class AbwDatabase {
         return this.getUserChains(user);
     }
 
+    /**
+     * Get user's preferences: enabled tokens
+     * @param {object} user JSON object - user
+     * @returns {array<object>} array of enabled tokens (JSON objects)
+     */
     async getUserCoins (user) {
         const keys = [];
 
@@ -323,24 +328,31 @@ class AbwDatabase {
         }
     };
 
-
+    /**
+     * Set user's preferences: enable or disable tokens
+     * @param {object} user JSON object - user
+     * @param {array<string>} list list of tokens names or contracts
+     * @param {boolean} enable true - to enable chains listed in list
+     * @returns {Promise<array<object>>} array of enabled tokens (objects)
+     */
     async switchEnabledTokens(user, list, enable) {
-        console.log(list);
+        let activeTokensArray = user['active_tokens'] || [];
+        let hiddenTokensArray = user['hidden_tokens'] || [];
 
-        let activeChains = user['active_tokens'] || [];
-        let hiddenChains = user['hidden_tokens'] || [];
-
-        const activeTokens = new Set(activeChains);
-        const hiddenTokens = new Set(hiddenChains);
+        const activeTokens = new Set(activeTokensArray);
+        const hiddenTokens = new Set(hiddenTokensArray);
 
         const coreCoins = this.blockchain.getCoreCoins();
+
         const coreTokens = coreCoins.map(coin => coin.name);
 
         if (enable) {
-            // TODO how to make it work with ID's ?
             for (let token of list) {
                 if (!coreTokens.includes(token)) {
-                    const coin = this.blockchain.getCoinByName(token);
+                    let coin = this.blockchain.getCoinByName(token);
+                    if (!coin) {
+                        coin = this.blockchain.getCoinByContract(token);
+                    }
                     if (coin) {
                         activeTokens.add(coin._id);
                         hiddenTokens.delete(coin._id);
@@ -367,9 +379,21 @@ class AbwDatabase {
         return this.getUserCoins(user);
     }
 
-    async saveTokensFromBalance(user, tokens){
+    /**
+     * Set user's preferences: automatically enable tokens, found in user's wallet
+     * @param {string} chain chain where wallet balances were found
+     * @param {object} user JSON object - user
+     * @param {array<object>} balances balance property returned by getTokensOnWallet
+     * @returns {Promise<array<object>>} array of enabled tokens (objects)
+     */
+    async saveTokensFromBalance(chain, user, balances){
+        // map token to _id
         const filtered = tokens.map(balance => {
-            return balance.token ? balance.token.name : balance.name;
+            const token = balance.token ? balance.token : balance;
+            if (token.contract !== '0') {
+                return `${chain}_${token.contract}`;
+            }
+            return `${token.name}`;
         });
 
         return this.switchEnabledTokens(user, filtered, true);

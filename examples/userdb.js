@@ -76,14 +76,14 @@ async function test() {
         console.log(newChains);
 
         /** Enabling/disabling active tokens */
-        const tokens = await abwDB.getUserCoins(user);
+        const tokens = abwDB.getUserCoins(user);
         console.log(tokens);
 
         // can enable all found tokens returned by getTokensOnWallet
         const address = await abwDB.getWalletAddress(user, chain);
         const balances = await abwSDK.getTokensOnWallet(chain, address);
-        // this will work only for "trusted" tokens
-        let newTokens = await abwDB.saveTokensFromBalance(user, balances['balance']);
+        // this will enable all found tokens for user
+        let newTokens = await abwDB.saveTokensFromBalance(chain, user, balances['balance']);
         console.log(newTokens);
 
         // or just switch on/off list of tokens

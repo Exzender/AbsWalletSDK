@@ -75,10 +75,10 @@ class Blockchain  {
 
         for (let coin of coins) {
 
-            let contract = coin.tokenContract || coin.assetName || coin.rri || coin.tokenID || coin.denom;
+            let contract = coin.contract || coin.tokenContract || coin.assetName || coin.rri || coin.tokenID || coin.denom;
             let name;
             if (this.coinsMap.has(coin.code)) {
-                name = `${coin.code}_${coin.node}`.toUpperCase();
+                name = `${coin.code}_${coin.network}`.toUpperCase();
             } else {
                 name = coin.code.toUpperCase();
             }
@@ -87,7 +87,9 @@ class Blockchain  {
 
             if (contract) {
                 coin.contract = contract;
-                this.coinsContractsMap.set(contract, name);
+                const id = `${coin.network}_${contract}`.toUpperCase();
+                console.log(id);
+                this.coinsContractsMap.set(id, coin);
             }
         }
 
@@ -163,9 +165,10 @@ class Blockchain  {
         return coins;
     }
 
-    getCoinByContract(contract) {
-        const name =  this.coinsContractsMap.get(contract);
-        return this.getCoinByName(name);
+    getCoinByContract(chain, contract) {
+        let str = contract ? `${chain}_${contract}` : chain;
+        console.log('getCoinByContract: ', str);
+        return  this.coinsContractsMap.get(str.toUpperCase());
     }
 
     getPlatforms() {
@@ -308,7 +311,7 @@ class Blockchain  {
 
         let coinObj = this.getCoinByName(payload.token);
         if (!coinObj) {
-            coinObj = this.getCoinByContract(payload.token);
+            coinObj = this.getCoinByContract(node.name, payload.token);
         }
 
         if (!coinObj) throw new Error(`Unknown token : ${payload.token}`);
@@ -362,7 +365,7 @@ class Blockchain  {
 
         let coin = this.getCoinByName(token);
         if (!coin) {
-            coin = this.getCoinByContract(token);
+            coin = this.getCoinByContract(chain, token);
         }
 
         if (!coin) return ;
