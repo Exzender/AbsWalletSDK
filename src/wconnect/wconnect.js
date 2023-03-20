@@ -156,7 +156,6 @@ class WcEventsHandler extends EventEmitter{
 
         if (count >= maxSessions && !sameFlag) {
 
-            // TODO this will not work !
             const oldConnect = await database.getWalletConnect({user_id: userId});
             if (oldConnect) {
                 const oldConn = getConnector(userId, oldConnect.peer_id);
