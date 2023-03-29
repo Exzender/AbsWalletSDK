@@ -28,8 +28,8 @@ Q:
 + 25.1. Add functions descriptions
 + 26. Create more use examples (split up one file)
 + 27. Add function to check Address validity (and/or detect address blockchain platform)
++ 28. Add test networks ! (first - callisto)
 
-! 28. Add test networks ! (first - callisto)
 ! 22. Implement Rain, Multi-send
 
 4.1. Get XPUB different for each network !
@@ -87,12 +87,3 @@ Q:
 +/- 7. Solana - fully work ( only for SOL )
 + 8. Terra - fully work
 + 9. Tron - fully work
-
-    Чтобы добавить тест сети
-
-1. Поставить им флаг (disabled=1)
-2. Где-то в АПИ (м.б. в конфиге) - принудительно включить эти (disabled) сети
-3. Дать тест сетям флаг/имя _TEST
-4. Прописать монеты/коины
-5. Отдельные проекты для таких сетей?
-6. Отдельный флаг при инициализации SDK - включить тест сети
