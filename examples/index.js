@@ -8,7 +8,8 @@ async function test() {
     const abwSDK = AbwSDK({ apiKey: apiKey, url: apiUrl});
 
     try {
-        await abwSDK.initBlockchain();
+        // NOTE 1st param - always take NET list from API, 2nd param - enable test chains
+        await abwSDK.initBlockchain(true, true);
     } catch (e) {
         console.log(e);
         process.exit(1);

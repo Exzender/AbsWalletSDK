@@ -5,6 +5,7 @@ Q:
 4. How to proxify WSS requests ?
 6. Propagate error from API to SDK (now they are replaced) - may use source mechanics - specify errors for every command
 8. Teach SDK work without loaded coins (just by contract address) ?
+9. WC dApp functions ?
 
     SDK functions
 
@@ -28,9 +29,11 @@ Q:
 + 26. Create more use examples (split up one file)
 + 27. Add function to check Address validity (and/or detect address blockchain platform)
 
+! 28. Add test networks ! (first - callisto)
+! 22. Implement Rain, Multi-send
+
 4.1. Get XPUB different for each network !
 17.2. Implement Solana SPL transaction prepare
-22. Implement Rain, Multi-send
 
     API calls
 + 1. Get Supported Networks: GET /info/networks (API-call)
@@ -47,7 +50,7 @@ Q:
 + 22. Enable nodes and tokens caching
 + 23. Enable initializing only specific nodes
 
-    KMS !
+    KMS
 + 1. Local storage to start with
 + 2. Encrypted local JSON file
 
@@ -84,3 +87,12 @@ Q:
 +/- 7. Solana - fully work ( only for SOL )
 + 8. Terra - fully work
 + 9. Tron - fully work
+
+    Чтобы добавить тест сети
+
+1. Поставить им флаг (disabled=1)
+2. Где-то в АПИ (м.б. в конфиге) - принудительно включить эти (disabled) сети
+3. Дать тест сетям флаг/имя _TEST
+4. Прописать монеты/коины
+5. Отдельные проекты для таких сетей?
+6. Отдельный флаг при инициализации SDK - включить тест сети

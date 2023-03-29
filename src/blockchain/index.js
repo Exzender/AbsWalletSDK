@@ -88,18 +88,19 @@ class Blockchain  {
             if (contract) {
                 coin.contract = contract;
                 const id = `${coin.network}_${contract}`.toUpperCase();
-                console.log(id);
                 this.coinsContractsMap.set(id, coin);
             }
         }
 
     }
 
-    async initNodes(nodes) {
+    async initNodes(nodes, testnets) {
         this.nodesMap.clear();
 
         const groupNodes = this.groupNodes;
         for (let node of nodes) {
+            if (node.testnet && !testnets) continue; // skip testnets if not enabled
+
             const platform = node.platform;
 
             const nLocal = {

@@ -49,9 +49,10 @@ function init (apiKey, url, ignoreSsl) {
  * Get blockchain nodes/tokens information from API and configures each supported blockchain for later use
  * Nodes/tokens information then stored locally. To refresh information from API set forceRefresh to true
  * @param {boolean} [forceRefresh=false] always get actual networks & tokens list from API
+ * @param {boolean} [testnets=false] enable use of test blockchains
  * @returns {Promise<object>} blockchain object if needed direct access to it's functions
  */
-async function initBlockchain(forceRefresh = false) {
+async function initBlockchain(forceRefresh = false, testnets = false) {
     try {
         let networks, tokens;
         let update = forceRefresh;
@@ -73,7 +74,7 @@ async function initBlockchain(forceRefresh = false) {
             }
         }
 
-        await blockchain.initNodes(networks);
+        await blockchain.initNodes(networks, testnets);
         await blockchain.initCoins(tokens);
 
         if (update) {
