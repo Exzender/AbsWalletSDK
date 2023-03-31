@@ -9,6 +9,16 @@ const SYMBOLS = ',./<>?;\'":[]\\|}{=-_+`~!@#$%^&*()'; // 32 chars
 const ALPHANUMERIC_CHARS = LOWERCASE_ALPHABET + UPPERCASE_ALPHABET + NUMBERS; // 62 chars
 const ALL_CHARS = ALPHANUMERIC_CHARS + SYMBOLS; // 94 chars
 
+function randomOid() {
+    const timestamp = Math.round(new Date().getTime() / 1000).toString(16);
+    const randomHexString = Array.from({ length: 16 }, () =>
+        Math.floor(Math.random() * 16).toString(16)
+    ).join("");
+
+    return `${timestamp}${randomHexString}`;
+}
+
+
 function generateRandomPassword(length = PASSWORD_LENGTH, alphabet = ALPHANUMERIC_CHARS) {
     const rb = crypto.randomBytes(length);
     let rp = '';
@@ -73,5 +83,6 @@ async function decryptAsync(data, password) {
 module.exports = {
     encryptAsync,
     decryptAsync,
-    generateRandomPassword
+    generateRandomPassword,
+    randomOid
 }

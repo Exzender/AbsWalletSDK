@@ -1,4 +1,4 @@
-const { encryptAsync, decryptAsync, generateRandomPassword } = require('./cipher');
+const { encryptAsync, decryptAsync, generateRandomPassword, randomOid } = require('./cipher');
 const file = require('./file');
 
 function reverseMap(map) {
@@ -10,5 +10,6 @@ module.exports = {
     reverseMap,
     encryptAsync,
     decryptAsync,
-    generateRandomPassword
+    generateRandomPassword,
+    randomOid
 };

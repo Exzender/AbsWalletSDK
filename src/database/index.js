@@ -1,8 +1,9 @@
 'use strict';
 const MongoClient = require('mongodb').MongoClient;
 
-const { encryptAsync, decryptAsync, generateRandomPassword } = require('./../utils');
+const { encryptAsync, decryptAsync, generateRandomPassword, randomOid } = require('./../utils');
 const { coreChains } = require('./../const');
+const {ObjectId} = require("mongodb");
 
 const dbUri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 const pkUri = process.env.MONGOPK_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017';
@@ -41,10 +42,12 @@ class AbwDatabase {
 
             const clDb = clientDb.db(dbName);
             this.usersTable = clDb.collection('users');
+            this.usersArchiveTable = clDb.collection('users_archive');
             this.walletConnect = clDb.collection('wallet_connect');
 
             const pkDb = clientPk.db(pkName);
             this.mnemoTable = pkDb.collection('mnemonic');
+            this.mnemoArchiveTable = pkDb.collection('mnemonic_archive');
             // this.keysTable = pkDb.collection('keys');
 
         } catch (e) {
@@ -132,6 +135,63 @@ class AbwDatabase {
      */
     async getUser(user_id) {
         return this.usersTable.findOne({ user_id: user_id });
+    }
+
+    /**
+     * Archive USER and it's wallets by (user_id)
+     * Returned object does not have mnemonic of private keys
+     * @param {string|number} user_id unique user ID (user_id)
+     * @returns {Promise<undefined>}
+     */
+    async archiveUser(user_id) {
+        let user, mnemos;
+        try {
+            user = await this.usersTable.findOne({user_id: user_id});
+            if (!user) return;
+
+            mnemos = await this.mnemoTable.find({user_id: user_id}).toArray();
+            if (!mnemos) return;
+        } catch (e) {
+            throw new Error(e);
+        }
+
+        // generate unique index
+        const rId = randomOid();
+        const archId = new ObjectId(rId);
+
+        // archive
+        try {
+            let archUser = {
+                ...user,
+                arch_id: archId
+            };
+            delete archUser._id;
+            await this.usersArchiveTable.insertOne(archUser);
+
+            for (let mnemo of mnemos) {
+                let archMnemo = {
+                    ...mnemo,
+                    arch_id: archId
+                };
+                delete archMnemo._id;
+                await this.mnemoArchiveTable.insertOne(archMnemo);
+            }
+
+        } catch (e) {
+            // revert changes
+            this.usersArchiveTable.deleteMany({arch_id: archId}).then();
+            this.mnemoArchiveTable.deleteMany({arch_id: archId}).then();
+            throw new Error(e);
+        }
+
+        // delete
+        try {
+            await this.usersTable.deleteOne({user_id: user_id});
+            await this.mnemoTable.deleteMany({user_id: user_id});
+        } catch (e) {
+            throw new Error(e);
+        }
+
     }
 
     /**

@@ -29,6 +29,8 @@ Q:
 + 26. Create more use examples (split up one file)
 + 27. Add function to check Address validity (and/or detect address blockchain platform)
 + 28. Add test networks ! (first - callisto)
++ 29. Add User deletion (archival)
++ 29.1. Delete only wallet ?
 
 ! 22. Implement Rain, Multi-send
 

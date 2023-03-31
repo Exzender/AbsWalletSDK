@@ -92,6 +92,25 @@ async function test() {
         newTokens = await abwDB.switchEnabledTokens(user, list, false);
         console.log(newTokens);
 
+        /** Archive user - will delete user with it's wallets - and store in archive tables */
+        // await abwDB.archiveUser(userId);
+        //
+        // let a = await abwDB.getUser(userId);
+        // console.log(a);
+
+        /** Renew/replace user's wallets */
+        // get user
+        // const r = await abwDB.getUser(userId);
+
+        // archive user's DB record
+        // await abwDB.archiveUser(userId);
+
+        // replace/recreate wallets
+        // r.wallet = await abwSDK.generateAllWallets();
+
+        // store updated user in DB
+        // await abwDB.storeUser(user);
+
     } catch (e) {
         console.error(e.toString());
     } finally {
