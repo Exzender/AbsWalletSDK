@@ -1,5 +1,5 @@
-const AbwSDK = require('./../src');
-const abwDB = require('../src/database');
+const AbwSDK = require('../lib');
+const abwDB = require('../lib/database');
 
 let abwSDK;
 

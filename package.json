@@ -2,7 +2,7 @@
   "name": "absolute.wallet.sdk",
   "version": "1.3.0",
   "description": "Multi chain Blockchain SDK by AbsoluteWallet",
-  "main": "src/index.js",
+  "main": "lib/index.js",
   "scripts": {
     "test": "jest",
     "start": "examples/index.js"
@@ -15,8 +15,8 @@
     "wallet",
     "sdk"
   ],
-  "author": "Avis",
-  "license": "ISC",
+  "author": "Kutuk",
+  "license": "MIT",
   "dependencies": {
     "@binance-chain/javascript-sdk": "^4.2.0",
     "@polkadot/api": "^9.13.4",

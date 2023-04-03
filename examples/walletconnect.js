@@ -1,6 +1,6 @@
-const AbwSDK = require("../src");
-const abwDB = require("../src/database");
-const abwWC = require("../src/wconnect");
+const AbwSDK = require("../lib");
+const abwDB = require("../lib/database");
+const abwWC = require("../lib/wconnect");
 
 let abwSDK;
 
