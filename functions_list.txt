@@ -32,7 +32,7 @@ Q:
 + 29.1. Delete only wallet ?
 
 ! 30. Add WAX/EOS support
-30.1 (only transfer)
++ 30.1 (get balance + transfer)
 30.2. Staking/unstaking, resource balances
 30.3. Import WAX/EOS to user's account ? (DB store)
 ! 22. Implement Rain, Multi-send
