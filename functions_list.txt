@@ -1,6 +1,5 @@
 Q:
 1. Implement CancelablePromise ?
-2. Support for test nets ?
 3. XPUB always generated for ETH net ?  But what about other chains ??
 4. How to proxify WSS requests ?
 6. Propagate error from API to SDK (now they are replaced) - may use source mechanics - specify errors for every command
@@ -32,6 +31,10 @@ Q:
 + 29. Add User deletion (archival)
 + 29.1. Delete only wallet ?
 
+! 30. Add WAX/EOS support
+30.1 (only transfer)
+30.2. Staking/unstaking, resource balances
+30.3. Import WAX/EOS to user's account ? (DB store)
 ! 22. Implement Rain, Multi-send
 
 4.1. Get XPUB different for each network !
